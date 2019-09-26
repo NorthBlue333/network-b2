@@ -21,6 +21,7 @@
 * 🌞 récupérer une **liste des cartes réseau** avec leur nom, leur IP et leur adresse MAC :
 
 **Commande :** `ip a`
+
 **Résultat :**
 ```
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
@@ -43,7 +44,9 @@
        valid_lft forever preferred_lft forever
 ```
 * 🌞 déterminer si les cartes réseaux ont récupéré une **IP en DHCP** ou non
+
 Il y a plusieurs méthodes pour savoir si l'IP est attribuée par un DHCP, comme par exemple regarder le BOOTPROTO des fichiers correspondants aux interfaces réseaux dans `/etc/sysconfig/network-scripts/`, qui sera `dhcp` dans ce cas, ou encore regarder la liste des baux dans `/var/lib/NetworkManager`. Les IPs sont attribuées dynamiquement (mot clé `dynamic` dans le résultat de la commande `ip a`).
+
   * si oui, affichez le bail DHCP utilisé par la machine
 **NAT :**
 ```
