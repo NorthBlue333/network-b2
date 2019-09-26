@@ -191,42 +191,177 @@ Soit, accepter tout les flux (entrants, redirigés ou sortants)
 
 **Deuxièmement : Modifier la configuration existante**
 
----
-
 ### 1. Configuration cartes réseau
 
-**NB** : sur CentOS8, la gestion des cartes réseau a légèrement changé. Il existe un démon qui gère désormais tout ce qui est relatif au réseau : NetworkManager.  
-
-Marche à suivre pour modifier la configuration d'une carte réseau :
-* édition du fichier de configuration
-  * `sudo vim /etc/sysconfig/network-scripts/ifcfg-enp0s8`
-* refresh de NetworkManager ("Hey prend mes modifications en compte stp !")
-  * `sudo nmcli connection reload` 
-  * `sudo nmcli con reload` même chose, on peut abréger les commandes `nmcli`
-  * `sudo nmcli c reload` même chose aussi
-* restart de l'interface
-  * `sudo ifdown enp0s8` puis `sudo ifup enp0s8`
-  * **OU** `sudo nmcli con up enp0s8`
-
-> Pour les hipsters, y'a moyen de ne plus passer du tout par les fichiers dans `/etc/sysconfig` et tout gérer directement avec NetworkManager, cf [la doc officielle](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/configuring_and_managing_networking/index#Selecting-Network-Configuration-methods_overview-of-Network-configuration-methods). 
-
----
+*(j'ai regardé viteuf pour nmcli mais flemme là)*
 
 * 🌞 modifier la configuration de la carte réseau privée
   * modifier la configuration de la carte réseau privée pour avoir une nouvelle IP statique définie par vos soins
+```
+cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+DEFROUTE=yes
+IPADDR=192.168.56.103
+NETMASK=255.255.255.0
+NAME=enp0s8
+UUID=8ca712aa-07de-4659-9174-67d4b1e4823d
+DEVICE=enp0s8
+ONBOOT=yes
+nmcli c reload
+nmcli con up enp0s8
+```
 
 * ajouter une nouvelle carte réseau dans un DEUXIEME réseau privé UNIQUEMENT privé
   * il faudra par exemple créer un nouveau host-only dans VirtualBox
   * 🌞 dans la VM définir une IP statique pour cette nouvelle carte
 
+Sur VirtualBox, on définit une nouvelle carte VHOST, ensuite on reboot la VM en ajoutant la carte. On crée le fichier `/etc/sysconfig/network-scripts/ifcfg-enp0s9`
+```
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+DEFROUTE=yes
+IPADDR=192.168.212.103
+NETMASK=255.255.255.0
+NAME=enp0s9
+DEVICE=enp0s9
+ONBOOT=yes
+nmcli c reload
+nmcli con up enp0s8
+```
+
 * vérifier vos changements
   * afficher les nouvelles cartes/IP
   * vérifier les nouvelles tables ARP/de routage
+
+```
+ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:34:f0:bc brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3
+       valid_lft 85883sec preferred_lft 85883sec
+    inet6 fe80::fd60:7592:daf0:6335/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:6f:54:c9 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.56.103/24 brd 192.168.56.255 scope global noprefixroute enp0s8
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe6f:54c9/64 scope link
+       valid_lft forever preferred_lft forever
+4: enp0s9: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000 #nouvelle
+    link/ether 08:00:27:03:8d:10 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.212.103/24 brd 192.168.212.255 scope global noprefixroute enp0s9
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe03:8d10/64 scope link
+       valid_lft forever preferred_lft forever
+ip neigh
+192.168.56.1 dev enp0s8 lladdr 0a:00:27:00:00:2e REACHABLE
+10.0.2.2 dev enp0s3 lladdr 52:54:00:12:35:02 REACHABLE
+ip route
+default via 10.0.2.2 dev enp0s3 proto dhcp metric 100
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100
+192.168.56.0/24 dev enp0s8 proto kernel scope link src 192.168.56.103 metric 103
+192.168.212.0/24 dev enp0s9 proto kernel scope link src 192.168.212.103 metric 104 #nouvelle
+```
 
 * 🐙 mettre en place un NIC *teaming* (ou *bonding*)
   * le *teaming* ou *bonding* consiste à agréger deux cartes réseau pour augmenter les performances/la bande passante
   * je vous laisse free sur la configuration (active/passive, loadbalancing, round-robin, autres)
   * prouver que le NIC *teaming* est en place
+
+Création du fichier `/etc/sysconfig/network-scripts/ifcfg-bond0`.
+```
+DEVICE=bond0
+BONDING_OPTS="miimon=1 updelay=0 downdelay=0 mode=active-backup" TYPE=Bond
+BONDING_MASTER=yes
+BOOTPROTO=none
+IPADDR=192.168.2.12
+PREFIX=24
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=bond0
+ONBOOT=yes
+```
+Ajout des lignes suivantes :
+```
+MASTER=bond0
+SLAVE=yes
+```
+Dans les fichiers ifcfg-enp0s8 et ifcfg-enp0s9. On reload ensuite avec les commandes :
+```
+nmcli c reload
+nmcli con up bond0
+nmcli con up enp0s8
+nmcli con up enp0s9
+```
+Pour vérifier le bond :
+```
+cat /proc/net/bonding/bond0
+Ethernet Channel Bonding Driver: v3.7.1 (April 27, 2011)
+
+Bonding Mode: load balancing (round-robin)
+MII Status: up
+MII Polling Interval (ms): 100
+Up Delay (ms): 0
+Down Delay (ms): 0
+
+Slave Interface: enp0s9
+MII Status: up
+Speed: 1000 Mbps
+Duplex: full
+Link Failure Count: 0
+Permanent HW addr: 08:00:27:03:8d:10
+Slave queue ID: 0
+
+Slave Interface: enp0s8
+MII Status: up
+Speed: 1000 Mbps
+Duplex: full
+Link Failure Count: 0
+Permanent HW addr: 08:00:27:6f:54:c9
+Slave queue ID: 0
+```
+Et dans les tables ARP, on voit que les réseaux 192.168.56.0/24 et 192.168.212.0/24 (enp0s8 et enp0s9) ne sont plus là, on voit seulement le réseau de bond0 192.168.2.0/24, de plus enp0s8 et enp0s9 n'ont plus d'IP.
+```
+ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:34:f0:bc brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3
+       valid_lft 84966sec preferred_lft 84966sec
+    inet6 fe80::fd60:7592:daf0:6335/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+3: enp0s8: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc fq_codel master bond0 state UP group default qlen 1000
+    link/ether 08:00:27:6f:54:c9 brd ff:ff:ff:ff:ff:ff
+4: enp0s9: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc fq_codel master bond0 state UP group default qlen 1000
+    link/ether 08:00:27:6f:54:c9 brd ff:ff:ff:ff:ff:ff
+5: bond0: <BROADCAST,MULTICAST,MASTER,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 08:00:27:6f:54:c9 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.2.12/24 brd 192.168.2.255 scope global noprefixroute bond0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::693e:18bd:d85d:ae13/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+```
 
 ---
 
