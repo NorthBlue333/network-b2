@@ -168,20 +168,226 @@ public (active)
 
   * 🐙 sous CentOS8, ce n'est plus `iptables` qui est utilisé pour manipuler le filtrage réseau mais `nftables`. Jouez un peu avec `nft` et affichez les "vraies" règles firewall (`firewalld`, manipulé avec `firewall-cmd` n'est qu'une surcouche à `nft`)
 
-**Commande :** `sudo nft list table filter`
+**Commande :** `sudo nft list table filter` ou avec n'importe quelle table dans `sudo nft list tables`
 **Résultat :**
 ```
-table ip filter {
-        chain INPUT {
-                type filter hook input priority 0; policy accept;
+table inet firewalld {
+        chain raw_PREROUTING {
+                type filter hook prerouting priority -290; policy accept;
+                icmpv6 type { nd-router-advert, nd-neighbor-solicit } accept
+                meta nfproto ipv6 fib saddr . iif oif missing drop
+                jump raw_PREROUTING_ZONES_SOURCE
+                jump raw_PREROUTING_ZONES
         }
 
-        chain FORWARD {
-                type filter hook forward priority 0; policy accept;
+        chain raw_PREROUTING_ZONES_SOURCE {
         }
 
-        chain OUTPUT {
-                type filter hook output priority 0; policy accept;
+        chain raw_PREROUTING_ZONES {
+                iifname "enp0s9" goto raw_PRE_public
+                iifname "bond0" goto raw_PRE_public
+                iifname "enp0s8" goto raw_PRE_public
+                iifname "enp0s3" goto raw_PRE_public
+                goto raw_PRE_public
+        }
+
+        chain mangle_PREROUTING {
+                type filter hook prerouting priority -140; policy accept;
+                jump mangle_PREROUTING_ZONES_SOURCE
+                jump mangle_PREROUTING_ZONES
+        }
+
+        chain mangle_PREROUTING_ZONES_SOURCE {
+        }
+
+        chain mangle_PREROUTING_ZONES {
+                iifname "enp0s9" goto mangle_PRE_public
+                iifname "bond0" goto mangle_PRE_public
+                iifname "enp0s8" goto mangle_PRE_public
+                iifname "enp0s3" goto mangle_PRE_public
+                goto mangle_PRE_public
+        }
+
+        chain filter_INPUT {
+                type filter hook input priority 10; policy accept;
+                ct state established,related accept
+                iifname "lo" accept
+                jump filter_INPUT_ZONES_SOURCE
+                jump filter_INPUT_ZONES
+                ct state invalid drop
+                reject with icmpx type admin-prohibited
+        }
+
+        chain filter_FORWARD {
+                type filter hook forward priority 10; policy accept;
+                ct state established,related accept
+                iifname "lo" accept
+                ip6 daddr { ::/96, ::ffff:0.0.0.0/96, 2002::/24, 2002:a00::/24, 2002:7f00::/24, 2002:a9fe::/32, 2002:ac10::/28, 2002:c0a8::/32, 2002:e000::/19 } reject with icmpv6 type addr-unreachable
+                jump filter_FORWARD_IN_ZONES_SOURCE
+                jump filter_FORWARD_IN_ZONES
+                jump filter_FORWARD_OUT_ZONES_SOURCE
+                jump filter_FORWARD_OUT_ZONES
+                ct state invalid drop
+                reject with icmpx type admin-prohibited
+        }
+
+        chain filter_OUTPUT {
+                type filter hook output priority 10; policy accept;
+                oifname "lo" accept
+                ip6 daddr { ::/96, ::ffff:0.0.0.0/96, 2002::/24, 2002:a00::/24, 2002:7f00::/24, 2002:a9fe::/32, 2002:ac10::/28, 2002:c0a8::/32, 2002:e000::/19 } reject with icmpv6 type addr-unreachable
+        }
+
+        chain filter_INPUT_ZONES_SOURCE {
+        }
+
+        chain filter_INPUT_ZONES {
+                iifname "enp0s9" goto filter_IN_public
+                iifname "bond0" goto filter_IN_public
+                iifname "enp0s8" goto filter_IN_public
+                iifname "enp0s3" goto filter_IN_public
+                goto filter_IN_public
+        }
+
+        chain filter_FORWARD_IN_ZONES_SOURCE {
+        }
+
+        chain filter_FORWARD_IN_ZONES {
+                iifname "enp0s9" goto filter_FWDI_public
+                iifname "bond0" goto filter_FWDI_public
+                iifname "enp0s8" goto filter_FWDI_public
+                iifname "enp0s3" goto filter_FWDI_public
+                goto filter_FWDI_public
+        }
+
+        chain filter_FORWARD_OUT_ZONES_SOURCE {
+        }
+
+        chain filter_FORWARD_OUT_ZONES {
+                oifname "enp0s9" goto filter_FWDO_public
+                oifname "bond0" goto filter_FWDO_public
+                oifname "enp0s8" goto filter_FWDO_public
+                oifname "enp0s3" goto filter_FWDO_public
+                goto filter_FWDO_public
+        }
+
+        chain raw_PRE_public {
+                jump raw_PRE_public_pre
+                jump raw_PRE_public_log
+                jump raw_PRE_public_deny
+                jump raw_PRE_public_allow
+                jump raw_PRE_public_post
+        }
+
+        chain raw_PRE_public_pre {
+        }
+
+        chain raw_PRE_public_log {
+        }
+
+        chain raw_PRE_public_deny {
+        }
+
+        chain raw_PRE_public_allow {
+        }
+
+        chain raw_PRE_public_post {
+        }
+
+        chain filter_IN_public {
+                jump filter_IN_public_pre
+                jump filter_IN_public_log
+                jump filter_IN_public_deny
+                jump filter_IN_public_allow
+                jump filter_IN_public_post
+                meta l4proto { icmp, ipv6-icmp } accept
+        }
+
+        chain filter_IN_public_pre {
+        }
+
+        chain filter_IN_public_log {
+        }
+
+        chain filter_IN_public_deny {
+        }
+
+        chain filter_IN_public_allow {
+                tcp dport ssh ct state new,untracked accept
+                ip6 daddr fe80::/64 udp dport dhcpv6-client ct state new,untracked accept
+                tcp dport 9090 ct state new,untracked accept
+        }
+
+        chain filter_IN_public_post {
+        }
+
+        chain filter_FWDI_public {
+                jump filter_FWDI_public_pre
+                jump filter_FWDI_public_log
+                jump filter_FWDI_public_deny
+                jump filter_FWDI_public_allow
+                jump filter_FWDI_public_post
+                meta l4proto { icmp, ipv6-icmp } accept
+        }
+
+        chain filter_FWDI_public_pre {
+        }
+
+        chain filter_FWDI_public_log {
+        }
+
+        chain filter_FWDI_public_deny {
+        }
+
+        chain filter_FWDI_public_allow {
+        }
+
+        chain filter_FWDI_public_post {
+        }
+
+        chain mangle_PRE_public {
+                jump mangle_PRE_public_pre
+                jump mangle_PRE_public_log
+                jump mangle_PRE_public_deny
+                jump mangle_PRE_public_allow
+                jump mangle_PRE_public_post
+        }
+
+        chain mangle_PRE_public_pre {
+        }
+
+        chain mangle_PRE_public_log {
+        }
+
+        chain mangle_PRE_public_deny {
+        }
+
+        chain mangle_PRE_public_allow {
+        }
+
+        chain mangle_PRE_public_post {
+        }
+
+        chain filter_FWDO_public {
+                jump filter_FWDO_public_pre
+                jump filter_FWDO_public_log
+                jump filter_FWDO_public_deny
+                jump filter_FWDO_public_allow
+                jump filter_FWDO_public_post
+        }
+
+        chain filter_FWDO_public_pre {
+        }
+
+        chain filter_FWDO_public_log {
+        }
+
+        chain filter_FWDO_public_deny {
+        }
+
+        chain filter_FWDO_public_allow {
+        }
+
+        chain filter_FWDO_public_post {
         }
 }
 ```
@@ -370,12 +576,47 @@ ip a
 * 🌞 modifier la configuration du système pour que le serveur SSH tourne sur le port 2222
   * adapter la configuration du firewall (fermer l'ancien port, ouvrir le nouveau)
 
+```
+firewall-cmd --remove-port=22/tcp --permanent
+firewall-cmd --add-port=2222/tcp --permanent
+firewall-cmd --reload
+vim /etc/ssh/sshd_config # on modifie la ligne "# Port 22" et on met Port 2222
+semanage port -a -t ssh_port_t -p tcp 2222
+systemctl restart sshd
+```
+
 * pour l'étape suivante, il faudra un hôte qui ne s'est jamais connecté à la VM afin d'observer les échanges ARP (vous pouvez aussi juste vider la table ARP du client). Je vous conseille de faire une deuxième VM dans le même réseau, mais vous pouvez utiliser votre PC hôte.
 
 * 🌞 analyser les trames de connexion au serveur SSH
   * intercepter avec Wireshark et/ou `tcpdump` le trafic entre le client SSH et le serveur SSH
   * détailler l'établissement de la connexion
     * doivent figurer au moins : échanges ARP, 3-way handshake TCP
+```
+sudo tcpdump -i enp0s8
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), capture size 262144 bytes
+16:37:03.103407 ARP, Request who-has localhost.localdomain tell 192.168.56.104, length 46 #Demande ARP
+16:37:03.103421 ARP, Reply localhost.localdomain is-at 08:00:27:6f:54:c9 (oui Unknown), length 28 #Réponse ARP
+16:37:03.103612 IP 192.168.56.104.50800 > localhost.localdomain.ssh: Flags [S], seq 3590438451, win 29200, options [mss 1460,sackOK,TS val 2376396728 ecr 0,nop,wscale 7], length 0
+16:37:03.103643 IP localhost.localdomain.ssh > 192.168.56.104.50800: Flags [R.], seq 0, ack 3590438452, win 0, length 0
+16:37:08.550845 ARP, Request who-has 192.168.56.104 tell localhost.localdomain, length 28 #Demande ARP
+16:37:08.551000 ARP, Reply 192.168.56.104 is-at 08:00:27:a3:c2:75 (oui Unknown), length 46 #Réponse ARP
+16:37:10.213625 IP 192.168.56.104.52182 > localhost.localdomain.EtherNet/IP-1: Flags [S], seq 3763174050, win 29200, options [mss 1460,sackOK,TS val 2376403838 ecr 0,nop,wscale 7], length 0
+16:37:10.213672 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52182: Flags [S.], seq 636941886, ack 3763174051, win 28960, options [mss 1460,sackOK,TS val 3474527237 ecr 2376403838,nop,wscale 7], length 0
+16:37:10.214022 IP 192.168.56.104.52182 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 1, win 229, options [nop,nop,TS val 2376403838 ecr 3474527237], length 0 #1er handshake
+16:37:10.225965 IP 192.168.56.104.52182 > localhost.localdomain.EtherNet/IP-1: Flags [P.], seq 1:22, ack 1, win 229, options [nop,nop,TS val 2376403850 ecr 3474527237], length 21 #2ème handshake
+16:37:10.225991 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52182: Flags [.], ack 22, win 227, options [nop,nop,TS val 3474527250 ecr 2376403850], length 0 #3ème handshake (on voit bien ack 1, puis seq 1:22, puis ack 22)
+16:37:10.226876 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52182: Flags [P.], seq 1:22, ack 22, win 227, options [nop,nop,TS val 3474527250 ecr 2376403850], length 21
+16:37:10.227324 IP 192.168.56.104.52182 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 22, win 229, options [nop,nop,TS val 2376403852 ecr 3474527250], length 0
+16:37:10.227603 IP 192.168.56.104.52182 > localhost.localdomain.EtherNet/IP-1: Flags [P.], seq 22:1366, ack 22, win 229, options [nop,nop,TS val 2376403852 ecr 3474527250], length 1344
+[...]
+16:37:21.124545 IP 192.168.56.104.52182 > localhost.localdomain.EtherNet/IP-1: Flags [F.], seq 2562, ack 3014, win 309, options [nop,nop,TS val 2376414749 ecr 3474538148], length 0
+16:37:21.125163 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52182: Flags [.], ack 2563, win 291, options [nop,nop,TS val 3474538149 ecr 2376414749], length 0
+16:37:21.132364 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52182: Flags [F.], seq 3014, ack 2563, win 291, options [nop,nop,TS val 3474538156 ecr 2376414749], length 0
+16:37:21.132618 IP 192.168.56.104.52182 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 3015, win 309, options [nop,nop,TS val 2376414757 ecr 3474538156], length 0
+16:37:35.063166 IP 192.168.56.1.57281 > 239.255.255.250.ssdp: UDP, length 173
+16:37:36.064024 IP 192.168.56.1.57281 > 239.255.255.250.ssdp: UDP, length 173
+```
     * 🐙 configurer une connexion par échange de clés, analyser les échanges réseau réalisés par le protocole SSH au moment de la connexion
   * une fois la connexion établie, choisir une trame du trafic SSH et détailler son contenu
 
