@@ -18,10 +18,66 @@
 
 **Première étape : récupération d'infos sur le système.**  
 
-* 🌞 récupérer une **liste des cartes réseau** avec leur nom, leur IP et leur adresse MAC
+* 🌞 récupérer une **liste des cartes réseau** avec leur nom, leur IP et leur adresse MAC :
+
+**Commande :** `ip a`
+**Résultat :**
+```
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000 #nom
+    link/ether 08:00:27:12:e0:e7 brd ff:ff:ff:ff:ff:ff #adresse MAC
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute enp0s3 #adresse IP
+       valid_lft 85685sec preferred_lft 85685sec
+    inet6 fe80::fd60:7592:daf0:6335/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000 #nom
+    link/ether 08:00:27:21:aa:29 brd ff:ff:ff:ff:ff:ff #adresse MAC
+    inet 192.168.56.102/24 brd 192.168.56.255 scope global dynamic noprefixroute enp0s8 #adresse IP
+       valid_lft 622sec preferred_lft 622sec
+    inet6 fe80::37c1:9e38:1360:9b30/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+```
 * 🌞 déterminer si les cartes réseaux ont récupéré une **IP en DHCP** ou non
+Il y a plusieurs méthodes pour savoir si l'IP est attribuée par un DHCP, comme par exemple regarder le BOOTPROTO des fichiers correspondants aux interfaces réseaux dans `/etc/sysconfig/network-scripts/`, qui sera `dhcp` dans ce cas, ou encore regarder la liste des baux dans `/var/lib/NetworkManager`. Les IPs sont attribuées dynamiquement (mot clé `dynamic` dans le résultat de la commande `ip a`).
   * si oui, affichez le bail DHCP utilisé par la machine
+**NAT :**
+```
+cat /var/lib/NetworkManager/internal-9ca56c00-391a-4117-9d80-0aaf6a4ae647-enp0s3.lease
+# This is private data. Do not parse.
+ADDRESS=10.0.2.15
+NETMASK=255.255.255.0
+ROUTER=10.0.2.2
+SERVER_ADDRESS=10.0.2.2
+NEXT_SERVER=10.0.2.4
+T1=43200
+T2=75600
+LIFETIME=86400
+DNS=10.33.10.20 10.33.10.2 8.8.8.8 8.8.4.4
+DOMAINNAME=auvence.co
+CLIENTID=0108002712e0e7
+```
+**VHOST :**
+```
+cat /var/lib/NetworkManager/internal-8ca712aa-07de-4659-9174-67d4b1e4823d-enp0s8.lease
+# This is private data. Do not parse.
+ADDRESS=192.168.56.102
+NETMASK=255.255.255.0
+SERVER_ADDRESS=192.168.56.100
+T1=600
+T2=1050
+LIFETIME=1200
+CLIENTID=0108002721aa29
+```
 * 🌞 afficher la **table de routage** de la machine et sa **table ARP**
+**[Routage] Commande :** `ip route`
+**[Routage] Résultat :**
+**[ARP] Commande :** `ip neigh`
+**[ARP] Résultat :**
   * expliquez chacune des lignes des deux tables 
   * *"cette route est celle de la carte XXX, elle est utilisée pour une connexion (locale|externe), la passerelle de cette route est à l'IP XXX et cette IP est portée par XXX"* par exemple
 * 🌞 récupérer **la liste des ports en écoute** (*listening*) sur la machine (TCP et UDP)
