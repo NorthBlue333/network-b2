@@ -96,6 +96,7 @@ default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 #cette route est celle par
 
 * 🌞 récupérer **la liste des ports en écoute** (*listening*) sur la machine (TCP et UDP)
   * trouver/déduire la liste des applications qui écoutent sur un port TCP ou UDP sur la machine (au moins un serveur SSH)
+  
 **Commande :** `sudo netstat -tulnp`
 
 **Résultat :**
@@ -114,6 +115,7 @@ udp6       0      0 ::1:323                 :::*                                
 * 🌞 récupérer **la liste des DNS utilisés par la machine**
   * effectuez une requête DNS afin de récupérer l'adresse IP associée au domaine `www.reddit.com` ~~(parce que c'est important d'avoir les bonnes adresses)~~
   * dans le retour de cette requête DNS, vérifier que vous utilisez bien les bons DNS renseignés sur votre machine
+  
 **[Liste DNS] Commande :** `cat /etc/resolv.conf`
 
 **[Liste DNS] Résultat :**
@@ -139,7 +141,9 @@ reddit.map.fastly.net.
 ```
 
 * 🌞 afficher **l'état actuel du firewall**
-**Commandes :** `systemctl status firewalld` ou `firewall-cmd --state`
+
+**Commandes :** `systemctl status firewalld` ou `firewall-cmd --state` (running)
+
   * quelles interfaces sont filtrées ?
   * quel port TCP/UDP sont autorisés/filtrés ?
 
