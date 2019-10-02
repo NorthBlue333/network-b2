@@ -658,6 +658,7 @@ tcpdump: verbose output suppressed, use -v or -vv for full protocol decodelisten
 21:26:44.048991 IP 192.168.212.103 > dns.google: ICMP echo request, id 1626, seq 5, length 64
 21:26:44.066766 IP dns.google > 192.168.212.103: ICMP echo reply, id 1626, seq 5, length 64
 ```
+On voit bien l'envoi du ping (request) et la réponse (reply) dans les deux captures.
 
 # IV. Autres applications et métrologie
 
