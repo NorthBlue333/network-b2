@@ -523,20 +523,141 @@ Je trouve pas l'échange de la clé différent par rapport à l'authentification
 |--------------------|------------------------|-------------------------|-----|
 | vm1.centos8.tp1    |                        | 192.168.212.103         |     |
 | vm2.centos8.tp1    | 192.168.56.104         |                         |     |
-| router.centos8.tp1 | 192.168.56.102         | 192.168.212.103         | YES |
+| router.centos8.tp1 | 192.168.56.102         | 192.168.212.102         | YES |
 
-* **Description**
-  * Le routeur a trois interfaces, dont une qui permet de joindre l'extérieur (internet)
-  * La `VM1` a une interface dans le réseau `net1`
-  * La `VM2` a une interface dans le réseau `net2`
-  * Les deux VMs peuvent joindre Internet en passant par le `Router`
-
-* 🌞 **To Do** 
-  * Tableau récapitulatif des IPs
-  * Configuration (bref) de VM1 et VM2
-  * Configuration routeur
-  * Preuve que VM1 passe par le routeur pour joindre internet
-  * Une (ou deux ? ;) ) capture(s) réseau ainsi que des explications qui mettent en évidence le routage effectué par le routeur
+VM1 :
+```
+cat /etc/sysconfig/network-scripts/route-enp0s9
+192.168.56.0/24 via 192.168.212.102 dev enp0s9
+cat /etc/sysconfig/network-scripts/ifcfg-enp0s9
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+DEFROUTE=yes
+IPADDR=192.168.212.103
+NETMASK=255.255.255.0
+NAME=enp0s9
+DEVICE=enp0s9
+ONBOOT=yes
+GATEWAY=192.168.212.102
+ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:34:f0:bc brd ff:ff:ff:ff:ff:ff
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:6f:54:c9 brd ff:ff:ff:ff:ff:ff
+4: enp0s9: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:03:8d:10 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.212.103/24 brd 192.168.212.255 scope global noprefixroute enp0s9
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe03:8d10/64 scope link
+       valid_lft forever preferred_lft forever
+ip route
+default via 192.168.212.102 dev enp0s9 proto static metric 100
+192.168.56.0/24 via 192.168.212.102 dev enp0s9 proto static metric 100
+192.168.212.0/24 dev enp0s9 proto kernel scope link src 192.168.212.103 metric 100
+tracepath 192.168.56.104 -n
+1?: [LOCALHOST]                      pmtu 1500
+ 1:  192.168.212.102                                       0.375ms
+ 1:  192.168.212.102                                       0.227ms
+ 2:  192.168.212.102                                       0.174ms !H
+tracepath 8.8.8.8 -n
+1?: [LOCALHOST]                      pmtu 1500
+ 1:  192.168.212.102                                       0.410ms
+ 1:  192.168.212.102                                       0.434ms
+ 2:  192.168.212.102                                       0.274ms !H
+```
+VM2 :
+```
+cat /etc/sysconfig/network-scripts/route-enp0s8
+192.168.212.0/24 via 192.168.56.102 dev enp0s8
+cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+IPADDR=192.168.56.104
+MASK=255.255.255.0
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+NAME=enp0s8
+UUID=8ca712aa-07de-4659-9174-67d4b1e4823d
+DEVICE=enp0s8
+ONBOOT=yes
+GATEWAY=192.168.56.102
+ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:58:75:fd brd ff:ff:ff:ff:ff:ff
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:a3:c2:75 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.56.104/24 brd 192.168.56.255 scope global noprefixroute enp0s8
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fea3:c275/64 scope link
+       valid_lft forever preferred_lft forever
+ip route
+default via 192.168.56.102 dev enp0s8 proto static metric 100
+192.168.56.0/24 dev enp0s8 proto kernel scope link src 192.168.56.104 metric 100
+192.168.212.0/24 via 192.168.56.102 dev enp0s8 proto static metric 100
+tracepath 192.168.212.103 -n
+ 1?: [LOCALHOST]                      pmtu 1500
+ 1:  192.168.56.102                                        0.296ms
+ 1:  192.168.56.102                                        0.230ms
+ 2:  192.168.56.102                                        0.438ms !H
+ tracepath 8.8.8.8 -n
+ 1?: [LOCALHOST]                      pmtu 1500
+ 1:  192.168.56.102                                        0.460ms
+ 1:  192.168.56.102                                        0.506ms
+ 2:  192.168.56.102                                        0.194ms !H
+```
+Captures réseaux : sur route `tcpdump -i enp0s9`, sur VM1 :
+```
+ping 192.168.56.104
+PING 192.168.56.104 (192.168.56.104) 56(84) bytes of data.
+64 bytes from 192.168.56.104: icmp_seq=1 ttl=63 time=0.537 ms
+64 bytes from 192.168.56.104: icmp_seq=2 ttl=63 time=0.658 ms
+64 bytes from 192.168.56.104: icmp_seq=3 ttl=63 time=0.609 ms
+64 bytes from 192.168.56.104: icmp_seq=4 ttl=63 time=0.736 ms
+```
+La capture :
+```
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decodelistening on enp0s9, link-type EN10MB (Ethernet), capture size 262144 bytes
+21:24:49.144411 IP 192.168.212.103 > 192.168.56.104: ICMP echo request, id 1620, seq 1, length 64
+21:24:49.144698 IP 192.168.56.104 > 192.168.212.103: ICMP echo reply, id 1620, seq 1, length 64
+21:24:50.208224 IP 192.168.212.103 > 192.168.56.104: ICMP echo request, id 1620, seq 2, length 64
+21:24:50.208546 IP 192.168.56.104 > 192.168.212.103: ICMP echo reply, id 1620, seq 2, length 64
+21:24:51.232481 IP 192.168.212.103 > 192.168.56.104: ICMP echo request, id 1620, seq 3, length 64
+21:24:51.232802 IP 192.168.56.104 > 192.168.212.103: ICMP echo reply, id 1620, seq 3, length 64
+21:24:52.255664 IP 192.168.212.103 > 192.168.56.104: ICMP echo request, id 1620, seq 4, length 64
+21:24:52.256021 IP 192.168.56.104 > 192.168.212.103: ICMP echo reply, id 1620, seq 4, length 64
+21:24:54.592696 ARP, Request who-has 192.168.212.103 tell router.centos8.tp1, length 28
+21:24:54.593092 ARP, Reply 192.168.212.103 is-at 08:00:27:03:8d:10 (oui Unknown), length 46
+```
+De même avec un ping 8.8.8.8 :
+```
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decodelistening on enp0s9, link-type EN10MB (Ethernet), capture size 262144 bytes
+21:26:40.040926 IP 192.168.212.103 > dns.google: ICMP echo request, id 1626, seq 1, length 64
+21:26:40.058123 IP dns.google > 192.168.212.103: ICMP echo reply, id 1626, seq 1, length 64
+21:26:41.042728 IP 192.168.212.103 > dns.google: ICMP echo request, id 1626, seq 2, length 64
+21:26:41.066243 IP dns.google > 192.168.212.103: ICMP echo reply, id 1626, seq 2, length 64
+21:26:42.044308 IP 192.168.212.103 > dns.google: ICMP echo request, id 1626, seq 3, length 64
+21:26:42.061404 IP dns.google > 192.168.212.103: ICMP echo reply, id 1626, seq 3, length 64
+21:26:43.046576 IP 192.168.212.103 > dns.google: ICMP echo request, id 1626, seq 4, length 64
+21:26:43.063942 IP dns.google > 192.168.212.103: ICMP echo reply, id 1626, seq 4, length 64
+21:26:44.048991 IP 192.168.212.103 > dns.google: ICMP echo request, id 1626, seq 5, length 64
+21:26:44.066766 IP dns.google > 192.168.212.103: ICMP echo reply, id 1626, seq 5, length 64
+```
 
 # IV. Autres applications et métrologie
 
