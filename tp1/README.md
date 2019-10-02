@@ -11,6 +11,7 @@
 - [III. Routage simple](#iii-routage-simple)
 - [IV. Autres applications et métrologie](#iv-autres-applications-et-m%c3%a9trologie)
   - [1. Commandes](#1-commandes)
+  - [`iftop` permet de voir tout ce qu'il se passe sur le réseau. Cela pourrait être utile pour voir et vérifier par exemple tous les connexions entrantes et sortantes, la bande passante...](#iftop-permet-de-voir-tout-ce-quil-se-passe-sur-le-r%c3%a9seau-cela-pourrait-%c3%aatre-utile-pour-voir-et-v%c3%a9rifier-par-exemple-tous-les-connexions-entrantes-et-sortantes-la-bande-passante)
   - [2. Cockpit](#2-cockpit)
   - [3. Netdata](#3-netdata)
 
@@ -677,20 +678,31 @@ Dans cette partie, on va jouer un peu avec de nouvelles commandes qui peuvent ê
 
 ## 1. Commandes
 
-* jouer avec `iftop`
-  * expliquer son utilisation et imaginer un cas où `iftop` peut être utile
-
+`iftop` permet de voir tout ce qu'il se passe sur le réseau. Cela pourrait être utile pour voir et vérifier par exemple tous les connexions entrantes et sortantes, la bande passante...
 ---
 
 ## 2. Cockpit
 
-* 🌞 mettre en place cockpit sur la VM1
-  * c'est quoi ? C'est un service web. Pour quoi faire ? Vous allez vite comprendre en le voyant.
-  * `sudo dnf install -y cockpit`
-  * `sudo systemctl start cockpit`
-  * trouver (à l'aide d'une commande shell) sur quel port (TCP ou UDP) écoute Cockpit 
-  * vérifier que le port est ouvert dans le firewall
-* 🌞 explorer Cockpit, plus spécifiquement ce qui est en rapport avec le réseau
+```
+sudo dnf install -y cockpit
+sudo systemctl start cockpit
+sudo ss -tupnal
+Netid              State                Recv-Q               Send-Q                                  Local Address:Port                               Peer Address:Port
+udp                UNCONN               0                    0                                    10.0.2.15%enp0s3:68                                      0.0.0.0:*                   users:(("NetworkManager",pid=789,fd=18))
+udp                UNCONN               0                    0                                           127.0.0.1:323                                     0.0.0.0:*                   users:(("chronyd",pid=758,fd=6))
+udp                UNCONN               0                    0                                               [::1]:323                                        [::]:*                   users:(("chronyd",pid=758,fd=7))
+tcp                LISTEN               0                    128                                           0.0.0.0:22                                      0.0.0.0:*                   users:(("sshd",pid=807,fd=6))
+tcp                LISTEN               0                    128                                              [::]:22                                         [::]:*                   users:(("sshd",pid=807,fd=8))
+tcp                LISTEN               0                    128                                                 *:9090                                          *:*                   users:(("cockpit-ws",pid=7990,fd=3),("systemd",pid=1,fd=24))
+```
+Cockpit écoute sur le port 9090 (en tcp car si on liste seulement les ports udp, il n'apparaît pas).
+```
+sudo firewall-cmd --list-services
+cockpit dhcpv6-client ssh
+```
+Cockpit est dans les services autorisés dans le firewall.
+
+Cockpit permet la supervision de la machine, avec par exemple l'utilisation CPU, la mémoire, l'espace disque, le trafic réseau et d'autres. Dans "réseau", on peut voir l'envoi et la réception sur les différentes interfaces, les logs, mais on peut aussi ajouter un vlan, un port, une équipe ou encore un lien. (j'ai un peu regardé mais c'est cool)
 
 ---
 
