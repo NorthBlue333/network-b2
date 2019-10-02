@@ -519,8 +519,11 @@ Je trouve pas l'échange de la clé différent par rapport à l'authentification
 |       |         |        |         |       |
 +-------+         +--------+         +-------+
 ```
-VM1 : vm1.centos8.tp1, carte VHOST sur le réseau 192.168.212.0/24
-VM2 : vm1.centos8.tp1, carte VHOST sur le réseau 192.168.56.0/24
+| hostname           | ip sur 192.168.56.0/24 | ip sur 192.168.212.0/24 | NAT |
+|--------------------|------------------------|-------------------------|-----|
+| vm1.centos8.tp1    |                        | 192.168.212.103         |     |
+| vm2.centos8.tp1    | 192.168.56.104         |                         |     |
+| router.centos8.tp1 | 192.168.56.102         | 192.168.212.103         | YES |
 
 * **Description**
   * Le routeur a trois interfaces, dont une qui permet de joindre l'extérieur (internet)
