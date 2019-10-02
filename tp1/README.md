@@ -525,6 +525,15 @@ Je trouve pas l'échange de la clé différent par rapport à l'authentification
 | vm2.centos8.tp1    | 192.168.56.104         |                         |     |
 | router.centos8.tp1 | 192.168.56.102         | 192.168.212.102         | YES |
 
+Router :
+```
+sudo sysctl net.ipv4.ip_forward=1
+cat /etc//sysctl.conf
+net.ipv4.ip_forward=1
+sudo firewall-cmd --permanent --direct --passthrough ipv4 -t nat -I POSTROUTING -o enp0s3 -j MASQUERADE -s 192.168.56.0/24
+sudo firewall-cmd --permanent --direct --passthrough ipv4 -t nat -I POSTROUTING -o enp0s3 -j MASQUERADE -s 192.168.212.0/24
+sudo firewall-cmd --reload
+```
 VM1 :
 ```
 cat /etc/sysconfig/network-scripts/route-enp0s9
