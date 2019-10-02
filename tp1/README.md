@@ -18,8 +18,6 @@
 
 **Première étape : récupération d'infos sur le système.**  
 
-* 🌞 récupérer une **liste des cartes réseau** avec leur nom, leur IP et leur adresse MAC :
-
 **Commande :** `ip a`
 
 **Résultat :**
@@ -43,11 +41,9 @@
     inet6 fe80::37c1:9e38:1360:9b30/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
 ```
-* 🌞 déterminer si les cartes réseaux ont récupéré une **IP en DHCP** ou non
 
 Il y a plusieurs méthodes pour savoir si l'IP est attribuée par un DHCP, comme par exemple regarder le BOOTPROTO des fichiers correspondants aux interfaces réseaux dans `/etc/sysconfig/network-scripts/`, qui sera `dhcp` dans ce cas, ou encore regarder la liste des baux dans `/var/lib/NetworkManager`. Les IPs sont attribuées dynamiquement (mot clé `dynamic` dans le résultat de la commande `ip a`).
 
-  * si oui, affichez le bail DHCP utilisé par la machine
 **NAT :**
 ```
 cat /var/lib/NetworkManager/internal-9ca56c00-391a-4117-9d80-0aaf6a4ae647-enp0s3.lease
@@ -76,7 +72,6 @@ T2=1050
 LIFETIME=1200
 CLIENTID=0108002721aa29
 ```
-* 🌞 afficher la **table de routage** de la machine et sa **table ARP**
 
 **[Routage] Commande :** `ip route`
 
@@ -94,9 +89,6 @@ default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 #cette route est celle par
 10.0.2.2 dev enp0s3 lladdr 52:54:00:12:35:02 REACHABLE #c'est l'IP du routeur Ynov, qui permet l'accès à internet, donc connue
 ```
 
-* 🌞 récupérer **la liste des ports en écoute** (*listening*) sur la machine (TCP et UDP)
-  * trouver/déduire la liste des applications qui écoutent sur un port TCP ou UDP sur la machine (au moins un serveur SSH)
-  
 **Commande :** `sudo netstat -tulnp`
 
 **Résultat :**
@@ -112,10 +104,6 @@ udp        0      0 127.0.0.1:323           0.0.0.0:*                           
 udp6       0      0 ::1:323                 :::*                                771/chronyd
 ```
 
-* 🌞 récupérer **la liste des DNS utilisés par la machine**
-  * effectuez une requête DNS afin de récupérer l'adresse IP associée au domaine `www.reddit.com` ~~(parce que c'est important d'avoir les bonnes adresses)~~
-  * dans le retour de cette requête DNS, vérifier que vous utilisez bien les bons DNS renseignés sur votre machine
-  
 **[Liste DNS] Commande :** `cat /etc/resolv.conf`
 
 **[Liste DNS] Résultat :**
@@ -139,8 +127,6 @@ reddit.map.fastly.net.
 151.101.129.140       
 151.101.1.140                                            
 ```
-
-* 🌞 afficher **l'état actuel du firewall**
 
 **Commandes :** `systemctl status firewalld` ou `firewall-cmd --state` (running)
 
@@ -240,117 +226,7 @@ table inet firewalld {
         chain filter_INPUT_ZONES_SOURCE {
         }
 
-        chain filter_INPUT_ZONES {
-                iifname "enp0s9" goto filter_IN_public
-                iifname "bond0" goto filter_IN_public
-                iifname "enp0s8" goto filter_IN_public
-                iifname "enp0s3" goto filter_IN_public
-                goto filter_IN_public
-        }
-
-        chain filter_FORWARD_IN_ZONES_SOURCE {
-        }
-
-        chain filter_FORWARD_IN_ZONES {
-                iifname "enp0s9" goto filter_FWDI_public
-                iifname "bond0" goto filter_FWDI_public
-                iifname "enp0s8" goto filter_FWDI_public
-                iifname "enp0s3" goto filter_FWDI_public
-                goto filter_FWDI_public
-        }
-
-        chain filter_FORWARD_OUT_ZONES_SOURCE {
-        }
-
-        chain filter_FORWARD_OUT_ZONES {
-                oifname "enp0s9" goto filter_FWDO_public
-                oifname "bond0" goto filter_FWDO_public
-                oifname "enp0s8" goto filter_FWDO_public
-                oifname "enp0s3" goto filter_FWDO_public
-                goto filter_FWDO_public
-        }
-
-        chain raw_PRE_public {
-                jump raw_PRE_public_pre
-                jump raw_PRE_public_log
-                jump raw_PRE_public_deny
-                jump raw_PRE_public_allow
-                jump raw_PRE_public_post
-        }
-
-        chain raw_PRE_public_pre {
-        }
-
-        chain raw_PRE_public_log {
-        }
-
-        chain raw_PRE_public_deny {
-        }
-
-        chain raw_PRE_public_allow {
-        }
-
-        chain raw_PRE_public_post {
-        }
-
-        chain filter_IN_public {
-                jump filter_IN_public_pre
-                jump filter_IN_public_log
-                jump filter_IN_public_deny
-                jump filter_IN_public_allow
-                jump filter_IN_public_post
-                meta l4proto { icmp, ipv6-icmp } accept
-        }
-
-        chain filter_IN_public_pre {
-        }
-
-        chain filter_IN_public_log {
-        }
-
-        chain filter_IN_public_deny {
-        }
-
-        chain filter_IN_public_allow {
-                tcp dport ssh ct state new,untracked accept
-                ip6 daddr fe80::/64 udp dport dhcpv6-client ct state new,untracked accept
-                tcp dport 9090 ct state new,untracked accept
-        }
-
-        chain filter_IN_public_post {
-        }
-
-        chain filter_FWDI_public {
-                jump filter_FWDI_public_pre
-                jump filter_FWDI_public_log
-                jump filter_FWDI_public_deny
-                jump filter_FWDI_public_allow
-                jump filter_FWDI_public_post
-                meta l4proto { icmp, ipv6-icmp } accept
-        }
-
-        chain filter_FWDI_public_pre {
-        }
-
-        chain filter_FWDI_public_log {
-        }
-
-        chain filter_FWDI_public_deny {
-        }
-
-        chain filter_FWDI_public_allow {
-        }
-
-        chain filter_FWDI_public_post {
-        }
-
-        chain mangle_PRE_public {
-                jump mangle_PRE_public_pre
-                jump mangle_PRE_public_log
-                jump mangle_PRE_public_deny
-                jump mangle_PRE_public_allow
-                jump mangle_PRE_public_post
-        }
+        [...] #j'ai coupé une partie c'était trop long
 
         chain mangle_PRE_public_pre {
         }
@@ -391,7 +267,6 @@ table inet firewalld {
         }
 }
 ```
-Soit, accepter tout les flux (entrants, redirigés ou sortants)
 
 ## II. Edit configuration
 
@@ -401,8 +276,6 @@ Soit, accepter tout les flux (entrants, redirigés ou sortants)
 
 *(j'ai regardé viteuf pour nmcli mais flemme là)*
 
-* 🌞 modifier la configuration de la carte réseau privée
-  * modifier la configuration de la carte réseau privée pour avoir une nouvelle IP statique définie par vos soins
 ```
 cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
 TYPE=Ethernet
@@ -420,10 +293,6 @@ nmcli c reload
 nmcli con up enp0s8
 ```
 
-* ajouter une nouvelle carte réseau dans un DEUXIEME réseau privé UNIQUEMENT privé
-  * il faudra par exemple créer un nouveau host-only dans VirtualBox
-  * 🌞 dans la VM définir une IP statique pour cette nouvelle carte
-
 Sur VirtualBox, on définit une nouvelle carte VHOST, ensuite on reboot la VM en ajoutant la carte. On crée le fichier `/etc/sysconfig/network-scripts/ifcfg-enp0s9`
 ```
 TYPE=Ethernet
@@ -439,10 +308,6 @@ ONBOOT=yes
 nmcli c reload
 nmcli con up enp0s8
 ```
-
-* vérifier vos changements
-  * afficher les nouvelles cartes/IP
-  * vérifier les nouvelles tables ARP/de routage
 
 ```
 ip a
@@ -480,10 +345,7 @@ default via 10.0.2.2 dev enp0s3 proto dhcp metric 100
 192.168.212.0/24 dev enp0s9 proto kernel scope link src 192.168.212.103 metric 104 #nouvelle
 ```
 
-* 🐙 mettre en place un NIC *teaming* (ou *bonding*)
-  * le *teaming* ou *bonding* consiste à agréger deux cartes réseau pour augmenter les performances/la bande passante
-  * je vous laisse free sur la configuration (active/passive, loadbalancing, round-robin, autres)
-  * prouver que le NIC *teaming* est en place
+NIC *teaming* (ou *bonding*)
 
 Création du fichier `/etc/sysconfig/network-scripts/ifcfg-bond0`.
 ```
@@ -568,13 +430,11 @@ ip a
     inet6 fe80::693e:18bd:d85d:ae13/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
 ```
+Ouais il manque une partie de la démo de "ça marche YAY", sorry
 
 ---
 
 ### 2. Serveur SSH
-
-* 🌞 modifier la configuration du système pour que le serveur SSH tourne sur le port 2222
-  * adapter la configuration du firewall (fermer l'ancien port, ouvrir le nouveau)
 
 ```
 firewall-cmd --remove-port=22/tcp --permanent
@@ -585,12 +445,7 @@ semanage port -a -t ssh_port_t -p tcp 2222
 systemctl restart sshd
 ```
 
-* pour l'étape suivante, il faudra un hôte qui ne s'est jamais connecté à la VM afin d'observer les échanges ARP (vous pouvez aussi juste vider la table ARP du client). Je vous conseille de faire une deuxième VM dans le même réseau, mais vous pouvez utiliser votre PC hôte.
-
-* 🌞 analyser les trames de connexion au serveur SSH
-  * intercepter avec Wireshark et/ou `tcpdump` le trafic entre le client SSH et le serveur SSH
-  * détailler l'établissement de la connexion
-    * doivent figurer au moins : échanges ARP, 3-way handshake TCP
+Avec une deuxième VM :
 ```
 sudo tcpdump -i enp0s8
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
@@ -617,14 +472,40 @@ listening on enp0s8, link-type EN10MB (Ethernet), capture size 262144 bytes
 16:37:35.063166 IP 192.168.56.1.57281 > 239.255.255.250.ssdp: UDP, length 173
 16:37:36.064024 IP 192.168.56.1.57281 > 239.255.255.250.ssdp: UDP, length 173
 ```
-    * 🐙 configurer une connexion par échange de clés, analyser les échanges réseau réalisés par le protocole SSH au moment de la connexion
-  * une fois la connexion établie, choisir une trame du trafic SSH et détailler son contenu
+
+Avec un échange de clés : 
+
+```
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), capture size 262144 bytes
+17:05:55.095554 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [S], seq 1854099786, win 29200, options [mss 1460,sackOK,TS val 2378128736 ecr 0,nop,wscale 7], length 0
+17:05:55.095605 ARP, Request who-has 192.168.56.104 tell localhost.localdomain, length 28 #Arp
+17:05:55.095855 ARP, Reply 192.168.56.104 is-at 08:00:27:a3:c2:75 (oui Unknown), length 46 #Arp
+17:05:55.095858 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [S.], seq 924898072, ack 1854099787, win 28960, options [mss 1460,sackOK,TS val 3476252136 ecr 2378128736,nop,wscale 7], length 0
+17:05:55.096109 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 1, win 229, options [nop,nop,TS val 2378128737 ecr 3476252136], length 0
+17:05:55.096350 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [P.], seq 1:22, ack 1, win 229, options [nop,nop,TS val 2378128737 ecr 3476252136], length 21
+17:05:55.096361 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [.], ack 22, win 227, options [nop,nop,TS val 3476252137 ecr 2378128737], length 0
+17:05:55.108736 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [P.], seq 1:22, ack 22, win 227, options [nop,nop,TS val 3476252149 ecr 2378128737], length 21
+17:05:55.109086 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 22, win 229, options [nop,nop,TS val 2378128750 ecr 3476252149], length 0
+17:05:55.109516 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [P.], seq 22:1366, ack 22, win 229, options [nop,nop,TS val 2378128750 ecr 3476252149], length 1344
+17:05:55.110525 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [P.], seq 22:1054, ack 1366, win 249, options [nop,nop,TS val 3476252151 ecr 2378128750], length 1032
+17:05:55.112876 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [P.], seq 1366:1414, ack 1054, win 245, options [nop,nop,TS val 2378128754 ecr 3476252151], length 48
+17:05:55.118644 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [P.], seq 1054:1514, ack 1414, win 249, options [nop,nop,TS val 3476252159 ecr 2378128754], length 460
+17:06:00.408815 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [P.], seq 3422:3578, ack 3342, win 312, options [nop,nop,TS val 3476257449 ecr 2378134049], length 156
+17:06:00.408918 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [P.], seq 3578:3650, ack 3342, win 312, options [nop,nop,TS val 3476257449 ecr 2378134049], length 72
+17:06:00.409116 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 3578, win 341, options [nop,nop,TS val 2378134050 ecr 3476257449], length 0
+17:06:00.409129 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 3650, win 341, options [nop,nop,TS val 2378134050 ecr 3476257449], length 0
+17:06:00.409253 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [P.], seq 3342:3378, ack 3650, win 341, options [nop,nop,TS val 2378134050 ecr 3476257449], length 36
+17:06:00.409328 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [P.], seq 3378:3446, ack 3650, win 341, options [nop,nop,TS val 2378134050 ecr 3476257449], length 68
+17:06:00.409398 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [F.], seq 3446, ack 3650, win 341, options [nop,nop,TS val 2378134050 ecr 3476257449], length 0
+17:06:00.409874 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [.], ack 3447, win 312, options [nop,nop,TS val 3476257450 ecr 2378134050], length 0
+17:06:00.417236 IP localhost.localdomain.EtherNet/IP-1 > 192.168.56.104.52194: Flags [F.], seq 3650, ack 3447, win 312, options [nop,nop,TS val 3476257457 ecr 2378134050], length 0
+17:06:00.417536 IP 192.168.56.104.52194 > localhost.localdomain.EtherNet/IP-1: Flags [.], ack 3651, win 341, options [nop,nop,TS val 2378134058 ecr 3476257457], length 0
+```
+Je trouve pas l'échange de la clé différent par rapport à l'authentification avec mot de passe
 
 # III. Routage simple
 
-Dans cette partie, vous allez remettre en place un routage statique simple. Vous êtes libres du choix de la techno (CentOS8, Cisco, autres. Vous pouvez utiliser GNS3). 
-
-Vous devez reproduire la mini-archi suivante : 
 ```
                    +-------+
                    |Outside|
@@ -638,6 +519,8 @@ Vous devez reproduire la mini-archi suivante :
 |       |         |        |         |       |
 +-------+         +--------+         +-------+
 ```
+VM1 : vm1.centos8.tp1, carte VHOST sur le réseau 192.168.212.0/24
+VM2 : vm1.centos8.tp1, carte VHOST sur le réseau 192.168.56.0/24
 
 * **Description**
   * Le routeur a trois interfaces, dont une qui permet de joindre l'extérieur (internet)
