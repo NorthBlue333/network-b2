@@ -37,9 +37,10 @@
 
 ```
 +-----+        +-------+        +-----+
-| PC1 +--------+  SW1  +--------+ PC2 |
+| PC1 +--------+  IOU1 +--------+ PC2 |
 +-----+        +-------+        +-----+
 ```
+![screen GNS3](screens/infra1.png)
 
 #### Plan d'adressage
 
@@ -77,14 +78,15 @@ Le switch n'a pas besoin d'IP car il se comporte comme une "multiprise".
                            |
                            |
                        +---+---+
-                   +---+  SW2  +----+
+                   +---+  IOU3 +----+
                    |   +-------+    |
                    |                |
                    |                |
 +-----+        +---+---+        +---+---+        +-----+
-| PC3 +--------+  SW1  +--------+  SW3  +--------+ PC5 |
+| PC3 +--------+  IOU2 +--------+ IOU4  +--------+ PC5 |
 +-----+        +-------+        +-------+        +-----+
 ```
+![screen GNS3](screens/infra2.png)
 
 #### Plan d'adressage
 
@@ -118,9 +120,9 @@ show mac address-table
 Vlan    Mac Address       Type        Ports
 ----    -----------       --------    -----
    1    0050.7966.6804    DYNAMIC     Et1/0 #MAC de PC3 00:50:79:66:68:04
-   1    aabb.cc00.0201    DYNAMIC     Et1/0 #MAC de SW1 sur le port et1/0
-   1    aabb.cc00.0400    DYNAMIC     Et1/0 #MAC du SW3 sur le port et0/0
-   1    aabb.cc00.0402    DYNAMIC     Et2/0 #MAC du SW3 sur le port et2/0
+   1    aabb.cc00.0201    DYNAMIC     Et1/0 #MAC de IOU2 sur le port et1/0
+   1    aabb.cc00.0400    DYNAMIC     Et1/0 #MAC du IOU4 sur le port et0/0
+   1    aabb.cc00.0402    DYNAMIC     Et2/0 #MAC du IOU4 sur le port et2/0
 Total Mac Addresses for this criterion: 4
 ```
 
