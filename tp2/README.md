@@ -10,7 +10,6 @@
 - [II. More switches](#ii-more-switches)
       - [Topologie](#topologie-1)
       - [Plan d'adressage](#plan-dadressage-1)
-      - [ToDo](#todo)
       - [Mise en évidence du Spanning Tree Protocol](#mise-en-%c3%a9vidence-du-spanning-tree-protocol)
       - [Reconfigurer STP](#reconfigurer-stp)
       - [🐙 STP & Perfs](#%f0%9f%90%99-stp--perfs)
@@ -18,15 +17,15 @@
   - [1. Simple](#1-simple)
       - [Topologie](#topologie-2)
       - [Plan d'adressage](#plan-dadressage-2)
-      - [ToDo](#todo-1)
+      - [ToDo](#todo)
   - [2. Avec trunk](#2-avec-trunk)
       - [Topologie](#topologie-3)
       - [Plan d'adressage](#plan-dadressage-3)
-      - [ToDo](#todo-2)
+      - [ToDo](#todo-1)
 - [IV. Need perfs](#iv-need-perfs)
       - [Topologie](#topologie-4)
       - [Plan d'adressage](#plan-dadressage-4)
-      - [ToDo](#todo-3)
+      - [ToDo](#todo-2)
 
 **Dans ce TP, vous pouvez considérez que :**
 * les `PC` sont [**des VPCS de GNS3**](/memo/setup-gns3.md#utilisation-dun-vpcs) (sauf indication contraire)
@@ -73,7 +72,7 @@ Le switch n'a pas besoin d'IP car il se comporte comme une "multiprise".
 
 ```
                         +-----+
-                        | PC2 |
+                        | PC4 |
                         +--+--+
                            |
                            |
@@ -83,7 +82,7 @@ Le switch n'a pas besoin d'IP car il se comporte comme une "multiprise".
                    |                |
                    |                |
 +-----+        +---+---+        +---+---+        +-----+
-| PC1 +--------+  SW1  +--------+  SW3  +--------+ PC3 |
+| PC3 +--------+  SW1  +--------+  SW3  +--------+ PC5 |
 +-----+        +-------+        +-------+        +-----+
 ```
 
@@ -91,15 +90,42 @@ Le switch n'a pas besoin d'IP car il se comporte comme une "multiprise".
 
 Machine | `net1`
 --- | ---
-`PC1` | `10.2.2.1/24`
-`PC2` | `10.2.2.2/24`
-`PC3` | `10.2.2.3/24`
+`PC3` | `10.2.2.1/24`
+`PC4` | `10.2.2.2/24`
+`PC5` | `10.2.2.3/24`
 
-#### ToDo
+Sur PC3 :
+```
+show
+NAME   IP/MASK              GATEWAY           MAC                LPORT  RHOST:PORT
+PC3    10.2.2.1/24          255.255.255.0     00:50:79:66:68:04  10016  127.0.0.1:10017
+       fe80::250:79ff:fe66:6804/64
+PC3> ping 10.2.2.2
+84 bytes from 10.2.2.2 icmp_seq=1 ttl=64 time=0.307 ms
+84 bytes from 10.2.2.2 icmp_seq=2 ttl=64 time=0.866 ms
+^C
+PC3> ping 10.2.2.3
+84 bytes from 10.2.2.3 icmp_seq=1 ttl=64 time=0.317 ms
+84 bytes from 10.2.2.3 icmp_seq=2 ttl=64 time=0.980 ms
+^C
+```
+Sur SW2 :
+```
+show mac address-table
+          Mac Address Table
+-------------------------------------------
 
-* 🌞 mettre en place la topologie ci-dessus
-* 🌞 faire communiquer les trois PCs
-  * avec des `ping` qui fonctionnent
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+   1    0050.7966.6804    DYNAMIC     Et1/0 #MAC de PC3 00:50:79:66:68:04
+   1    aabb.cc00.0201    DYNAMIC     Et1/0 #MAC de SW1 sur le port et1/0
+   1    aabb.cc00.0400    DYNAMIC     Et1/0 #MAC du SW3 sur le port et0/0
+   1    aabb.cc00.0402    DYNAMIC     Et2/0 #MAC du SW3 sur le port et2/0
+Total Mac Addresses for this criterion: 4
+```
+
+Sur les switches : `show interfaces <interface>` pour avoir toutes les infos (dont la mac).
+
 * 🌞 analyser la table MAC d'un switch
   * `show mac address-table`
   * comprendre/expliquer chaque ligne
