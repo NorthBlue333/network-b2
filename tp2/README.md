@@ -49,7 +49,8 @@ Machine | `net1`
 `PC1` | `10.2.1.1/24`
 `PC2` | `10.2.1.2/24`
 
-Depuis PC1 : `ping 10.2.1.2`
+Depuis PC1 : `ping 10.2.1.2`. Le protocole utilisé est ICMP, mais le protocole ARP est utilisé pour trouver la MAC correspondant à l'adresse IP 10.2.1.2.
+
 Dans le fichier [pc1-iou](captures/pc1-iou), les lignes 19-20-21 correspondent aux échanges ARP (broadcast pour "Qui est 10.2.1.2", réponse avec la mac de 10.2.1.2). On voit bien ensuite les request/reply du ping. (de même pour le fichier [pc2-iou](captures/pc2-iou)).
 
 Sur PC1 :
