@@ -4,16 +4,13 @@
 
 - [TP2 : Network low-level, Switching](#tp2--network-low-level-switching)
 - [Sommaire](#sommaire)
-- [Intro](#intro)
-- [0. Etapes préliminaires](#0-etapes-pr%c3%a9liminaires)
 - [I. Simplest setup](#i-simplest-setup)
       - [Topologie](#topologie)
       - [Plan d'adressage](#plan-dadressage)
-      - [ToDo](#todo)
 - [II. More switches](#ii-more-switches)
       - [Topologie](#topologie-1)
       - [Plan d'adressage](#plan-dadressage-1)
-      - [ToDo](#todo-1)
+      - [ToDo](#todo)
       - [Mise en évidence du Spanning Tree Protocol](#mise-en-%c3%a9vidence-du-spanning-tree-protocol)
       - [Reconfigurer STP](#reconfigurer-stp)
       - [🐙 STP & Perfs](#%f0%9f%90%99-stp--perfs)
@@ -21,44 +18,15 @@
   - [1. Simple](#1-simple)
       - [Topologie](#topologie-2)
       - [Plan d'adressage](#plan-dadressage-2)
-      - [ToDo](#todo-2)
+      - [ToDo](#todo-1)
   - [2. Avec trunk](#2-avec-trunk)
       - [Topologie](#topologie-3)
       - [Plan d'adressage](#plan-dadressage-3)
-      - [ToDo](#todo-3)
+      - [ToDo](#todo-2)
 - [IV. Need perfs](#iv-need-perfs)
       - [Topologie](#topologie-4)
       - [Plan d'adressage](#plan-dadressage-4)
-      - [ToDo](#todo-4)
-
-# Intro
-
-Dans ce TP on va se pencher un peu plus sur les échanges réseau en eux-mêmes, en **analysant les trames réseau avec Wireshark**. 
-
-On va aussi jouer de façon un peu plus avancée avec des **switches**.
-
-On va commencer à rentrer plus dans le détails des différents éléments.  
-**Allez à votre rythme, prenez le temps de comprendre.**  
-**Posez des questions.**  
-**Prenez des notes au fur et à mesure.**  
-**Lisez les parties en entier avant de commencer à travailler dessus.**
-
-Pour ce qui est de la mise en place, on va manipuler des switches (IOS Cisco) et aborder les notions/protocoles suivants : 
-* ARP
-* `ping`
-* Spanning-Tree : STP
-* Utilisation de VLAN : Trunking
-* Agrégation de ports : LACP 
-
-> **Référez-vous [au README des TPs](/tp/README.md) pour des infos sur le déroulement et le rendu des TPs.**
-
-# 0. Etapes préliminaires
-
-* avoir lu [le README des TPs](/tp/README.md)
-* [**GNS3** installé et configuré](/memo/setup-gns3.md) (avec la **GNS3VM**, dans la même version)
-* **Wireshark** installé
-* Lecture du [mémo/setup GNS3](/memo/setup-gns3.md)
-* Lecture du [mémo CLI Cisco](/memo/cli-cisco.md) section [Général](/memo/cli-cisco.md#general) et [Switches](/memo/cli-cisco.md#switches)
+      - [ToDo](#todo-3)
 
 **Dans ce TP, vous pouvez considérez que :**
 * les `PC` sont [**des VPCS de GNS3**](/memo/setup-gns3.md#utilisation-dun-vpcs) (sauf indication contraire)
@@ -81,23 +49,22 @@ Machine | `net1`
 `PC1` | `10.2.1.1/24`
 `PC2` | `10.2.1.2/24`
 
-#### ToDo
-
 Depuis PC1 : `ping 10.2.1.2`
+Dans le fichier [pc1-iou](captures/pc1-iou), les lignes 19-20-21 correspondent aux échanges ARP (broadcast pour "Qui est 10.2.1.2", réponse avec la mac de 10.2.1.2). On voit bien ensuite les request/reply du ping. (de même pour le fichier [pc2-iou](captures/pc2-iou)).
 
-* 🌞 mettre en place la topologie ci-dessus
-* 🌞 faire communiquer les deux PCs
-  * avec un `ping` qui fonctionne
-    * déterminer le protocole utilisé par `ping` à l'aide de Wireshark
-  * analyser les échanges ARP
-    * utiliser Wireshark et mettre en évidence l'échange ARP entre les deux machines (`ARP Request` et `ARP Reply`)
-    * corréler avec les tables ARP des différentes machines
-* 🌞 récapituler toutes les étapes (dans le compte-rendu, à l'écrit) quand `PC1` exécute `ping PC2` pour la première fois
-  * échanges ARP
-  * échange `ping`
-* 🌞 expliquer...
-  * pourquoi le switch n'a pas besoin d'IP
-  * pourquoi les machines ont besoin d'une IP pour pouvoir se `ping`
+Sur PC1 :
+```
+show arp
+00:50:79:66:68:01  10.2.1.2 expires in 117 seconds
+```
+
+Sur PC2 :
+```
+show arp
+00:50:79:66:68:00  10.2.1.1 expires in 65 seconds
+```
+
+Le switch n'a pas besoin d'IP car il se comporte comme une "multiprise".
 
 # II. More switches
 
