@@ -61,7 +61,7 @@ DNS=10.33.10.20 10.33.10.2 8.8.8.8 8.8.4.4
 DOMAINNAME=auvence.co
 CLIENTID=0108002712e0e7
 ```
-**VHOST :**
+**Host-only :**
 ```
 cat /var/lib/NetworkManager/internal-8ca712aa-07de-4659-9174-67d4b1e4823d-enp0s8.lease
 # This is private data. Do not parse.
@@ -80,13 +80,13 @@ CLIENTID=0108002721aa29
 ```
 default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 #cette route est celle par défaut de la carte enp0s3, elle est utilisée pour une connexion externe, la passerelle de cette route est à l'IP 10.0.2.2 et cette IP est portée par le routeur Ynov
 10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100 #cette route est celle de la carte enp0s3 pour des IPs dans le réseau 10.0.2.0/24, elle est utilisée pour une connexion locale, la passerelle de cette route est à l'IP 10.0.2.2
-192.168.56.0/24 dev enp0s8 proto kernel scope link src 192.168.56.102 metric 101 #cette route est celle de la carte enp0s8 pour des IPs dans le réseau 192.168.56.0/24, elle est utilisée pour une connexion locale, la passerelle de cette route est à l'IP 192.168.56.1 et elle est portée par la carte VHOST de mon pc
+192.168.56.0/24 dev enp0s8 proto kernel scope link src 192.168.56.102 metric 101 #cette route est celle de la carte enp0s8 pour des IPs dans le réseau 192.168.56.0/24, elle est utilisée pour une connexion locale, la passerelle de cette route est à l'IP 192.168.56.1 et elle est portée par la carte Host-only de mon pc
 ```
 **[ARP] Commande :** `ip neigh`
 
 **[ARP] Résultat :**
 ```
-192.168.56.1 dev enp0s8 lladdr 0a:00:27:00:00:2e DELAY #c'est l'IP de la carte VHOST de mon pc, connue car je suis connectée à la VM en SSH sur cette IP
+192.168.56.1 dev enp0s8 lladdr 0a:00:27:00:00:2e DELAY #c'est l'IP de la carte Host-only de mon pc, connue car je suis connectée à la VM en SSH sur cette IP
 10.0.2.2 dev enp0s3 lladdr 52:54:00:12:35:02 REACHABLE #c'est l'IP du routeur Ynov, qui permet l'accès à internet, donc connue
 ```
 
@@ -294,7 +294,7 @@ nmcli c reload
 nmcli con up enp0s8
 ```
 
-Sur VirtualBox, on définit une nouvelle carte VHOST, ensuite on reboot la VM en ajoutant la carte. On crée le fichier `/etc/sysconfig/network-scripts/ifcfg-enp0s9`
+Sur VirtualBox, on définit une nouvelle carte Host-only, ensuite on reboot la VM en ajoutant la carte. On crée le fichier `/etc/sysconfig/network-scripts/ifcfg-enp0s9`
 ```
 TYPE=Ethernet
 PROXY_METHOD=none
