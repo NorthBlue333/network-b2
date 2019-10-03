@@ -51,7 +51,7 @@ Machine | `net1`
 
 Depuis PC1 : `ping 10.2.1.2`. Le protocole utilisé est ICMP, mais le protocole ARP est utilisé pour trouver la MAC correspondant à l'adresse IP 10.2.1.2.
 
-Dans le fichier [pc1-iou](captures/pc1-iou.pcap), les lignes 19-20-21 correspondent aux échanges ARP (broadcast pour "Qui est 10.2.1.2", réponse avec la mac de 10.2.1.2). On voit bien ensuite les request/reply du ping. (de même pour le fichier [pc2-iou](captures/pc2-iou)).
+Dans le fichier [pc1-iou](captures/pc1-iou.pcapng), les lignes 19-20-21 correspondent aux échanges ARP (broadcast pour "Qui est 10.2.1.2", réponse avec la mac de 10.2.1.2). On voit bien ensuite les request/reply du ping. (de même pour le fichier [pc2-iou](captures/pc2-iou)).
 
 Sur PC1 :
 ```
@@ -128,7 +128,7 @@ Total Mac Addresses for this criterion: 4
 
 Sur les switches : `show interfaces <interface>` pour avoir toutes les infos (dont la mac). La table comprend une adresse MAC par lien (IOU2<->IOU3, IOU4<->IOU3 et IOU2<->IOU4), et la MAC du PC3 qui a effectué un ping. Les VLAN sont par défaut 1.
 
-Pour les trames CDP : [capture CDP iou2-3](captures/iou2-iou3.pcap), [capture CDP iou2-4](captures/iou2-iou4.pcap), [capture CDP iou3-4](captures/iou3-iou4.pcap). Ces trames utilisent Cisco Discovery Protocol, qui sert à la découverte réseau de niveau 2. Il permet de trouver des périphériques voisins connectés.
+Pour les trames CDP : [capture CDP iou2-3](captures/iou2-iou3.pcapng), [capture CDP iou2-4](captures/iou2-iou4.pcapng), [capture CDP iou3-4](captures/iou3-iou4.pcapng). Ces trames utilisent Cisco Discovery Protocol, qui sert à la découverte réseau de niveau 2. Il permet de trouver des périphériques voisins connectés.
 
 #### Mise en évidence du Spanning Tree Protocol
 
