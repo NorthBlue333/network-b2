@@ -235,7 +235,7 @@ Les *route port* :
 * IOU3 : mac `aabb.cc00.0300`, port `eth0/0`
 * IOU4 : mac `aabb.cc00.0400`, port `eth0/0`
 
-(Voir le schéma)[#Topologie]
+[Voir le schéma](#Topologie)
 
 * 🌞 confirmer les informations STP
   * effectuer un `ping` d'une machine à une autre
