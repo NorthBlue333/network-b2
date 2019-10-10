@@ -11,6 +11,7 @@
       - [Topologie 2](#topologie-2)
       - [Plan d'adressage](#plan-dadressage-1)
       - [Mise en évidence du Spanning Tree Protocol](#mise-en-%c3%a9vidence-du-spanning-tree-protocol)
+      - [Route ports](#route-ports)
       - [Reconfigurer STP](#reconfigurer-stp)
       - [🐙 STP & Perfs](#%f0%9f%90%99-stp--perfs)
 - [III. Isolation](#iii-isolation)
@@ -88,6 +89,12 @@ Le switch n'a pas besoin d'IP car il se comporte comme une "multiprise".
 ```
 ![screen GNS3](screens/infra2.png)
 
+* **IOU2** : c'est le *Route Bridge*, donc tous ses ports sont forwarded
+* **IOU3** : son *Root port* est `eth1/0`
+* **IOU4** : son *Root port* est `eth0/0`, son port bloqué est `eth2/0`
+
+[Voir la partie correspondante](#Route-ports)
+
 #### Plan d'adressage
 
 Machine | `net1`
@@ -141,101 +148,189 @@ Si on considère les trois liens qui unissent les switches :
 
 Sur IOU2 : (on peut voir qu'il est le *Root bridge* du VLAN1)
 ```
-show spanning-tree summary
-Switch is in rapid-pvst mode
-Root bridge for: VLAN0001
-Extended system ID                      is enabled
-Portfast Default                        is disabled
-Portfast Edge BPDU Guard Default        is disabled
-Portfast Edge BPDU Filter Default       is disabled
-Loopguard Default                       is disabled
-PVST Simulation Default                 is enabled but inactive in rapid-pvst mode
-Bridge Assurance                        is enabled
-EtherChannel misconfig guard            is enabled
-Configured Pathcost method used is short
-UplinkFast                              is disabled
-BackboneFast                            is disabled
+show interfaces
+Ethernet0/0 is up, line protocol is up (connected)
+  Hardware is AmdP2, address is aabb.cc00.0200 (bia aabb.cc00.0200)
+  MTU 1500 bytes, BW 10000 Kbit/sec, DLY 1000 usec,
+     reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Auto-duplex, Auto-speed, media type is unknown
+  input flow-control is off, output flow-control is unsupported
+  ARP type: ARPA, ARP Timeout 04:00:00
+  Last input 00:00:04, output 00:00:01, output hang never
+  Last clearing of "show interface" counters never
+  Input queue: 0/2000/0/0 (size/max/drops/flushes); Total output drops: 0
+  Queueing strategy: fifo
+  Output queue: 0/0 (size/max)
+  5 minute input rate 0 bits/sec, 0 packets/sec
+  5 minute output rate 0 bits/sec, 0 packets/sec
+     235 packets input, 42468 bytes, 0 no buffer
+     Received 235 broadcasts (0 multicasts)
+     0 runts, 0 giants, 0 throttles
+     0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+     0 input packets with dribble condition detected
+     2411 packets output, 185796 bytes, 0 underruns
+     0 output errors, 0 collisions, 0 interface resets
 
-Name                   Blocking Listening Learning Forwarding STP Active
----------------------- -------- --------- -------- ---------- ----------
-VLAN0001                     0         0        0         16         16
----------------------- -------- --------- -------- ---------- ----------
-1 vlan                       0         0        0         16         16
+IOU2#show sp
+IOU2#show spanning-tree
 
-show spanning-tree bridge
+VLAN0001
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32769
+             Address     aabb.cc00.0200
+             This bridge is the root
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
 
-                                                   Hello  Max  Fwd
-Vlan                         Bridge ID              Time  Age  Dly  Protocol
----------------- --------------------------------- -----  ---  ---  --------
-VLAN0001         32769 (32768,   1) aabb.cc00.0200    2    20   15  rstp
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     aabb.cc00.0200
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  300 sec
+
+Interface           Role Sts Cost      Prio.Nbr Type
+------------------- ---- --- --------- -------- --------------------------------
+Et0/0               Desg FWD 100       128.1    Shr
+Et0/1               Desg FWD 100       128.2    Shr
+Et0/2               Desg FWD 100       128.3    Shr
+Et0/3               Desg FWD 100       128.4    Shr
+Et1/0               Desg FWD 100       128.5    Shr
+Et1/1               Desg FWD 100       128.6    Shr
+Et1/2               Desg FWD 100       128.7    Shr
+Et1/3               Desg FWD 100       128.8    Shr
+Et2/0               Desg FWD 100       128.9    Shr
+Et2/1               Desg FWD 100       128.10   Shr
+Et2/2               Desg FWD 100       128.11   Shr
+Et2/3               Desg FWD 100       128.12   Shr
+Et3/0               Desg FWD 100       128.13   Shr
+Et3/1               Desg FWD 100       128.14   Shr
+Et3/2               Desg FWD 100       128.15   Shr
+Et3/3               Desg FWD 100       128.16   Shr
 ```
-Alors que sur IOU4 :
+Sur IOU3 :
 ```
-show spanning-tree summary
-Switch is in rapid-pvst mode
-Root bridge for: none
-Extended system ID                      is enabled
-Portfast Default                        is disabled
-Portfast Edge BPDU Guard Default        is disabled
-Portfast Edge BPDU Filter Default       is disabled
-Loopguard Default                       is disabled
-PVST Simulation Default                 is enabled but inactive in rapid-pvst mode
-Bridge Assurance                        is enabled
-EtherChannel misconfig guard            is enabled
-Configured Pathcost method used is short
-UplinkFast                              is disabled
-BackboneFast                            is disabled
+show interfaces
+Ethernet0/0 is up, line protocol is up (connected)
+  Hardware is AmdP2, address is aabb.cc00.0300 (bia aabb.cc00.0300)
+  MTU 1500 bytes, BW 10000 Kbit/sec, DLY 1000 usec,
+     reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Auto-duplex, Auto-speed, media type is unknown
+  input flow-control is off, output flow-control is unsupported
+  ARP type: ARPA, ARP Timeout 04:00:00
+  Last input never, output 00:00:01, output hang never
+  Last clearing of "show interface" counters never
+  Input queue: 0/2000/0/0 (size/max/drops/flushes); Total output drops: 0
+  Queueing strategy: fifo
+  Output queue: 0/0 (size/max)
+  5 minute input rate 0 bits/sec, 0 packets/sec
+  5 minute output rate 0 bits/sec, 0 packets/sec
+     0 packets input, 0 bytes, 0 no buffer
+     Received 0 broadcasts (0 multicasts)
+     0 runts, 0 giants, 0 throttles
+     0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+     0 input packets with dribble condition detected
+     2564 packets output, 199122 bytes, 0 underruns
+     0 output errors, 0 collisions, 0 interface resets
 
-Name                   Blocking Listening Learning Forwarding STP Active
----------------------- -------- --------- -------- ---------- ----------
-VLAN0001                     1         0        0         15         16
----------------------- -------- --------- -------- ---------- ----------
-1 vlan                       1         0        0         15         16
+IOU3#show spanning-tree
 
-show spanning-tree bridge
+VLAN0001
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32769
+             Address     aabb.cc00.0200
+             Cost        100
+             Port        5 (Ethernet1/0)
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
 
-                                                   Hello  Max  Fwd
-Vlan                         Bridge ID              Time  Age  Dly  Protocol
----------------- --------------------------------- -----  ---  ---  --------
-VLAN0001         32769 (32768,   1) aabb.cc00.0400    2    20   15  rstp
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     aabb.cc00.0300
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  300 sec
+
+Interface           Role Sts Cost      Prio.Nbr Type
+------------------- ---- --- --------- -------- --------------------------------
+Et0/0               Desg FWD 100       128.1    Shr
+Et0/1               Desg FWD 100       128.2    Shr
+Et0/2               Desg FWD 100       128.3    Shr
+Et0/3               Desg FWD 100       128.4    Shr
+Et1/0               Root FWD 100       128.5    Shr
+Et1/1               Desg FWD 100       128.6    Shr
+Et1/2               Desg FWD 100       128.7    Shr
+Et1/3               Desg FWD 100       128.8    Shr
+Et2/0               Desg FWD 100       128.9    Shr
+Et2/1               Desg FWD 100       128.10   Shr
+Et2/2               Desg FWD 100       128.11   Shr
+Et2/3               Desg FWD 100       128.12   Shr
+Et3/0               Desg FWD 100       128.13   Shr
+Et3/1               Desg FWD 100       128.14   Shr
+Et3/2               Desg FWD 100       128.15   Shr
+Et3/3               Desg FWD 100       128.16   Shr
 ```
-Et sur IOU3 :
+Sur IOU4 :
 ```
-show spanning-tree summary
-Switch is in rapid-pvst mode
-Root bridge for: none
-Extended system ID                      is enabled
-Portfast Default                        is disabled
-Portfast Edge BPDU Guard Default        is disabled
-Portfast Edge BPDU Filter Default       is disabled
-Loopguard Default                       is disabled
-PVST Simulation Default                 is enabled but inactive in rapid-pvst mode
-Bridge Assurance                        is enabled
-EtherChannel misconfig guard            is enabled
-Configured Pathcost method used is short
-UplinkFast                              is disabled
-BackboneFast                            is disabled
+show interfaces
+Ethernet0/0 is up, line protocol is up (connected)
+  Hardware is AmdP2, address is aabb.cc00.0400 (bia aabb.cc00.0400)
+  MTU 1500 bytes, BW 10000 Kbit/sec, DLY 1000 usec,
+     reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, loopback not set
+  Keepalive set (10 sec)
+  Auto-duplex, Auto-speed, media type is unknown
+  input flow-control is off, output flow-control is unsupported
+  ARP type: ARPA, ARP Timeout 04:00:00
+  Last input 00:00:00, output 00:00:06, output hang never
+  Last clearing of "show interface" counters never
+  Input queue: 0/2000/0/0 (size/max/drops/flushes); Total output drops: 0
+  Queueing strategy: fifo
+  Output queue: 0/0 (size/max)
+  5 minute input rate 0 bits/sec, 0 packets/sec
+  5 minute output rate 0 bits/sec, 0 packets/sec
+     2085 packets input, 140911 bytes, 0 no buffer
+     Received 2085 broadcasts (0 multicasts)
+     0 runts, 0 giants, 0 throttles
+     0 input errors, 0 CRC, 0 frame, 0 overrun, 0 ignored
+     0 input packets with dribble condition detected
+     364 packets output, 56478 bytes, 0 underruns
+     0 output errors, 0 collisions, 0 interface resets
 
-Name                   Blocking Listening Learning Forwarding STP Active
----------------------- -------- --------- -------- ---------- ----------
-VLAN0001                     0         0        0         16         16
----------------------- -------- --------- -------- ---------- ----------
-1 vlan                       0         0        0         16         16
+IOU4#show spanning-tree
 
-show spanning-tree bridge
+VLAN0001
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32769
+             Address     aabb.cc00.0200
+             Cost        100
+             Port        1 (Ethernet0/0)
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
 
-                                                   Hello  Max  Fwd
-Vlan                         Bridge ID              Time  Age  Dly  Protocol
----------------- --------------------------------- -----  ---  ---  --------
-VLAN0001         32769 (32768,   1) aabb.cc00.0300    2    20   15  rstp
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     aabb.cc00.0400
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  300 sec
+
+Interface           Role Sts Cost      Prio.Nbr Type
+------------------- ---- --- --------- -------- --------------------------------
+Et0/0               Root FWD 100       128.1    Shr
+Et0/1               Desg FWD 100       128.2    Shr
+Et0/2               Desg FWD 100       128.3    Shr
+Et0/3               Desg FWD 100       128.4    Shr
+Et1/0               Desg FWD 100       128.5    Shr
+Et1/1               Desg FWD 100       128.6    Shr
+Et1/2               Desg FWD 100       128.7    Shr
+Et1/3               Desg FWD 100       128.8    Shr
+Et2/0               Altn BLK 100       128.9    Shr
+Et2/1               Desg FWD 100       128.10   Shr
+Et2/2               Desg FWD 100       128.11   Shr
+Et2/3               Desg FWD 100       128.12   Shr
+Et3/0               Desg FWD 100       128.13   Shr
+Et3/1               Desg FWD 100       128.14   Shr
+Et3/2               Desg FWD 100       128.15   Shr
+Et3/3               Desg FWD 100       128.16   Shr
 ```
-
-Les *route port* :
-* IOU2 : mac `aabb.cc00.0200`, port `eth0/0`
-* IOU3 : mac `aabb.cc00.0300`, port `eth0/0`
-* IOU4 : mac `aabb.cc00.0400`, port `eth0/0`
-
-[Voir le schéma](#Topologie_2)
+#### Route ports
+[Voir le schéma avec les ports](#Topologie_2)
 
 * 🌞 confirmer les informations STP
   * effectuer un `ping` d'une machine à une autre
