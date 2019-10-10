@@ -330,12 +330,10 @@ Et3/2               Desg FWD 100       128.15   Shr
 Et3/3               Desg FWD 100       128.16   Shr
 ```
 #### Route ports
-[Voir le schéma avec les ports](#Topologie_2)
+[Voir le schéma avec les ports](#Topologie-2)
 
-* 🌞 confirmer les informations STP
-  * effectuer un `ping` d'une machine à une autre
-  * vérifier que les trames passent bien par le chemin attendu (Wireshark)
-* 🌞 ainsi, déterminer quel lien a été désactivé par STP
+Ping entre PC3 et PC4 : [voir la capture du lien entre IOU2 et IOU3](captures/iou2-iou3-stp.pcapng). On voit bien le ping passer par ce lien. Le lien désactivé est celui entre IOU3 et IOU4 car aucun des deux n'est le route bridge et il n'est donc pas nécessaire.
+
 * 🌞 faire un schéma qui explique le trajet d'une requête ARP lorsque PC1 ping PC3, et de sa réponse
   * représenter **TOUTES** les trames ARP (n'oubliez pas les broadcasts)
 
