@@ -334,15 +334,16 @@ Et3/3               Desg FWD 100       128.16   Shr
 
 Ping entre PC3 et PC4 : [voir la capture du lien entre IOU2 et IOU3](captures/iou2-iou3-stp.pcapng). On voit bien le ping passer par ce lien. Le lien désactivé est celui entre IOU3 et IOU4 car aucun des deux n'est le route bridge et il n'est donc pas nécessaire.
 
-* 🌞 faire un schéma qui explique le trajet d'une requête ARP lorsque PC1 ping PC3, et de sa réponse
-  * représenter **TOUTES** les trames ARP (n'oubliez pas les broadcasts)
+Schéma d'une requête ARP lorsque PC3 ping PC5 et captures : [pc3-iou2](captures/pc3-iou2-arp.pcapng), [iou2-iou4](captures/iou2-iou4-arp.pcapng), [iou4-pc5](captures/iou4-pc5-arp.pcapng). Les requêtes ARP passent par tous les liens en broadcast, et la réponse se fait sur le lien le plus court. (Les requêtes sont dupliquées ???)
 
 #### Reconfigurer STP
 
-* 🌞 changer la priorité d'un switch qui n'est pas le *root bridge*
-* 🌞 vérifier les changements
-  * avec des commandes sur les switches
-  * 🐙 capturer les échanges qui suivent une reconfiguration STP avec Wireshark
+```
+# AVANT
+
+# APRES
+
+```
 
 #### 🐙 STP & Perfs
 
