@@ -139,13 +139,104 @@ Si on considère les trois liens qui unissent les switches :
 
 **L'un de ces liens a forcément été désactivé.**
 
-On va regarder comment STP a été configuré.
+Sur IOU2 : (on peut voir qu'il est le *Root bridge* du VLAN1)
+```
+show spanning-tree summary
+Switch is in rapid-pvst mode
+Root bridge for: VLAN0001
+Extended system ID                      is enabled
+Portfast Default                        is disabled
+Portfast Edge BPDU Guard Default        is disabled
+Portfast Edge BPDU Filter Default       is disabled
+Loopguard Default                       is disabled
+PVST Simulation Default                 is enabled but inactive in rapid-pvst mode
+Bridge Assurance                        is enabled
+EtherChannel misconfig guard            is enabled
+Configured Pathcost method used is short
+UplinkFast                              is disabled
+BackboneFast                            is disabled
 
-* 🌞 déterminer les informations STP
-  * à l'aide des [commandes dédiées au protocole](/memo/cli-cisco.md#stp)
-* 🌞 faire un schéma en représentant les informations STP
-  * rôle des switches (qui est le root bridge)
-  * rôle de chacun des ports
+Name                   Blocking Listening Learning Forwarding STP Active
+---------------------- -------- --------- -------- ---------- ----------
+VLAN0001                     0         0        0         16         16
+---------------------- -------- --------- -------- ---------- ----------
+1 vlan                       0         0        0         16         16
+
+show spanning-tree bridge
+
+                                                   Hello  Max  Fwd
+Vlan                         Bridge ID              Time  Age  Dly  Protocol
+---------------- --------------------------------- -----  ---  ---  --------
+VLAN0001         32769 (32768,   1) aabb.cc00.0200    2    20   15  rstp
+```
+Alors que sur IOU4 :
+```
+show spanning-tree summary
+Switch is in rapid-pvst mode
+Root bridge for: none
+Extended system ID                      is enabled
+Portfast Default                        is disabled
+Portfast Edge BPDU Guard Default        is disabled
+Portfast Edge BPDU Filter Default       is disabled
+Loopguard Default                       is disabled
+PVST Simulation Default                 is enabled but inactive in rapid-pvst mode
+Bridge Assurance                        is enabled
+EtherChannel misconfig guard            is enabled
+Configured Pathcost method used is short
+UplinkFast                              is disabled
+BackboneFast                            is disabled
+
+Name                   Blocking Listening Learning Forwarding STP Active
+---------------------- -------- --------- -------- ---------- ----------
+VLAN0001                     1         0        0         15         16
+---------------------- -------- --------- -------- ---------- ----------
+1 vlan                       1         0        0         15         16
+
+show spanning-tree bridge
+
+                                                   Hello  Max  Fwd
+Vlan                         Bridge ID              Time  Age  Dly  Protocol
+---------------- --------------------------------- -----  ---  ---  --------
+VLAN0001         32769 (32768,   1) aabb.cc00.0400    2    20   15  rstp
+```
+Et sur IOU3 :
+```
+show spanning-tree summary
+Switch is in rapid-pvst mode
+Root bridge for: none
+Extended system ID                      is enabled
+Portfast Default                        is disabled
+Portfast Edge BPDU Guard Default        is disabled
+Portfast Edge BPDU Filter Default       is disabled
+Loopguard Default                       is disabled
+PVST Simulation Default                 is enabled but inactive in rapid-pvst mode
+Bridge Assurance                        is enabled
+EtherChannel misconfig guard            is enabled
+Configured Pathcost method used is short
+UplinkFast                              is disabled
+BackboneFast                            is disabled
+
+Name                   Blocking Listening Learning Forwarding STP Active
+---------------------- -------- --------- -------- ---------- ----------
+VLAN0001                     0         0        0         16         16
+---------------------- -------- --------- -------- ---------- ----------
+1 vlan                       0         0        0         16         16
+
+show spanning-tree bridge
+
+                                                   Hello  Max  Fwd
+Vlan                         Bridge ID              Time  Age  Dly  Protocol
+---------------- --------------------------------- -----  ---  ---  --------
+VLAN0001         32769 (32768,   1) aabb.cc00.0300    2    20   15  rstp
+```
+
+Les *route port* :
+* IOU2 : mac `aabb.cc00.0200`, port `eth0/0`
+* IOU3 : mac `aabb.cc00.0300`, port `eth0/0`
+* IOU4 : mac `aabb.cc00.0400`, port `eth0/0`
+
+(Voir le schéma)[#Topologie]
+
 * 🌞 confirmer les informations STP
   * effectuer un `ping` d'une machine à une autre
   * vérifier que les trames passent bien par le chemin attendu (Wireshark)
