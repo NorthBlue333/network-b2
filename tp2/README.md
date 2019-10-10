@@ -8,22 +8,22 @@
       - [Topologie](#topologie)
       - [Plan d'adressage](#plan-dadressage)
 - [II. More switches](#ii-more-switches)
-      - [Topologie](#topologie-1)
+      - [Topologie 2](#topologie-2)
       - [Plan d'adressage](#plan-dadressage-1)
       - [Mise en évidence du Spanning Tree Protocol](#mise-en-%c3%a9vidence-du-spanning-tree-protocol)
       - [Reconfigurer STP](#reconfigurer-stp)
       - [🐙 STP & Perfs](#%f0%9f%90%99-stp--perfs)
 - [III. Isolation](#iii-isolation)
   - [1. Simple](#1-simple)
-      - [Topologie](#topologie-2)
+      - [Topologie](#topologie-1)
       - [Plan d'adressage](#plan-dadressage-2)
       - [ToDo](#todo)
   - [2. Avec trunk](#2-avec-trunk)
-      - [Topologie](#topologie-3)
+      - [Topologie](#topologie-2)
       - [Plan d'adressage](#plan-dadressage-3)
       - [ToDo](#todo-1)
 - [IV. Need perfs](#iv-need-perfs)
-      - [Topologie](#topologie-4)
+      - [Topologie](#topologie-3)
       - [Plan d'adressage](#plan-dadressage-4)
       - [ToDo](#todo-2)
 
@@ -69,7 +69,7 @@ Le switch n'a pas besoin d'IP car il se comporte comme une "multiprise".
 
 # II. More switches
 
-#### Topologie
+#### Topologie 2
 
 ```
                         +-----+
@@ -235,7 +235,7 @@ Les *route port* :
 * IOU3 : mac `aabb.cc00.0300`, port `eth0/0`
 * IOU4 : mac `aabb.cc00.0400`, port `eth0/0`
 
-[Voir le schéma](#Topologie)
+[Voir le schéma](#Topologie_2)
 
 * 🌞 confirmer les informations STP
   * effectuer un `ping` d'une machine à une autre
