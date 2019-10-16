@@ -19,13 +19,12 @@
       - [Topologie 3](#topologie-3)
       - [Plan d'adressage](#plan-dadressage-2)
   - [2. Avec trunk](#2-avec-trunk)
-      - [Topologie](#topologie-1)
+      - [Topologie 4](#topologie-4)
       - [Plan d'adressage](#plan-dadressage-3)
-      - [ToDo](#todo)
 - [IV. Need perfs](#iv-need-perfs)
-      - [Topologie](#topologie-2)
+      - [Topologie](#topologie-1)
       - [Plan d'adressage](#plan-dadressage-4)
-      - [ToDo](#todo-1)
+      - [ToDo](#todo)
 
 **Dans ce TP, vous pouvez considérez que :**
 * les `PC` sont [**des VPCS de GNS3**](/memo/setup-gns3.md#utilisation-dun-vpcs) (sauf indication contraire)
@@ -333,7 +332,7 @@ Et3/3               Desg FWD 100       128.16   Shr
 
 Ping entre PC3 et PC4 : [voir la capture du lien entre IOU2 et IOU3](captures/iou2-iou3-stp.pcapng). On voit bien le ping passer par ce lien. Le lien désactivé est celui entre IOU3 et IOU4 car aucun des deux n'est le route bridge et il n'est donc pas nécessaire.
 
-Schéma d'une requête ARP lorsque PC3 ping PC5 et captures : [pc3-iou2](captures/pc3-iou2-arp.pcapng), [iou2-iou4](captures/iou2-iou4-arp.pcapng), [iou4-pc5](captures/iou4-pc5-arp.pcapng). Les requêtes ARP passent par tous les liens en broadcast, et la réponse se fait sur le lien le plus court. (Les requêtes sont dupliquées ???)
+Schéma d'une requête ARP lorsque PC3 ping PC5 et captures : [pc3-iou2](captures/pc3-iou2-arp.pcapng), [iou2-iou4](captures/iou2-iou4-arp.pcapng), [pc5-iou4](captures/pc5-iou4-arp.pcapng). Les requêtes ARP passent par tous les liens en broadcast, et la réponse se fait sur le lien le plus court. (Les requêtes sont dupliquées ???)
 
 #### Reconfigurer STP
 
@@ -399,7 +398,7 @@ On voit bien que les trames ne circulent plus après les commandes : [pc4-iou3](
                 | PC7 |
                 +-----+
 ```
-![screen GNS3](screens/infra1.png)
+![screen GNS3](screens/infra3.png)
 
 #### Plan d'adressage
 
@@ -472,35 +471,80 @@ PC7> ping 10.2.3.1
 
 ## 2. Avec trunk
 
-#### Topologie
+#### Topologie 4
 
 ```
 +-----+        +-------+        +-------+        +-----+
-| PC1 +--------+  SW1  +--------+  SW2  +--------+ PC4 |
+| PC9 +--------+  SW1  +--------+  SW2  +--------+ PC12|
 +-----+      10+-------+        +-------+20      +-----+
                  20|              10|
                    |                |
                 +--+--+          +--+--+
-                | PC2 |          | PC3 |
+                | PC10|          | PC11|
                 +-----+          +-----+
 ```
+![screen GNS3](screens/infra4.png)
 
 #### Plan d'adressage
 
 Machine | IP `net1` | IP `net2` | VLAN
---- | --- | --- | ---
-`PC1` | `10.2.10.1/24` | X | 10
-`PC2` | X | `10.2.20.1/24` | 20
-`PC3` | `10.2.10.2/24` | X | 10
-`PC4` | X | `10.2.20.2/24` | 20
+------ | --- | --- | ---
+`PC9`  | `10.2.10.1/24` | X | 10
+`PC10` | X | `10.2.20.1/24` | 20
+`PC11` | `10.2.10.2/24` | X | 10
+`PC12` | X | `10.2.20.2/24` | 20
 
-#### ToDo
+Mêmes commandes sur IOU6 et IOU7 :
+```
+IOU6#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+IOU6(config)#vlan 10
+IOU6(config-vlan)#name client-10
+IOU6(config-vlan)#exit
+IOU6(config)#interface et 0/0
+IOU6(config-if)#switchport mode access
+IOU6(config-if)#switchport access vlan 10 # vlan 20 pour IOU7
+IOU6(config-if)#exit
+IOU6(config)#vlan 20
+IOU6(config-vlan)#name client-20
+IOU6(config-vlan)#exit
+IOU6(config)#interface et 2/0
+IOU6(config-if)#switchport mode access
+IOU6(config-if)#switchport access vlan 20 # vlan 10 pour IOU7
+IOU6(config-if)#exit
+IOU6(config)#interface et 1/0
+IOU6(config-if)#switchport trunk encapsulation dot1q
+IOU6(config-if)#switchport mode trunk
+IOU6(config-if)#switchport trunk allowed vlan 10,20
+```
+Vérifications :
+```
+PC9> ping 10.2.10.2
+84 bytes from 10.2.10.2 icmp_seq=1 ttl=64 time=0.348 ms
+84 bytes from 10.2.10.2 icmp_seq=2 ttl=64 time=0.484 ms
+84 bytes from 10.2.10.2 icmp_seq=3 ttl=64 time=0.605 ms
+84 bytes from 10.2.10.2 icmp_seq=4 ttl=64 time=0.831 ms
+84 bytes from 10.2.10.2 icmp_seq=5 ttl=64 time=0.612 ms
 
-* 🌞 mettre en place la topologie ci-dessus
-* 🌞 faire communiquer les PCs deux à deux
-  * vérifier que `PC1` ne peut joindre que `PC3`
-  * vérifier que `PC4` ne peut joindre que `PC2`
-* 🌞 mettre en évidence l'utilisation des VLANs avec Wireshark
+PC9> ping 10.2.20.1
+host (255.255.255.0) not reachable
+
+PC9> ping 10.2.20.2
+host (255.255.255.0) not reachable
+
+PC10> ping 10.2.20.2
+84 bytes from 10.2.20.2 icmp_seq=1 ttl=64 time=0.393 ms
+84 bytes from 10.2.20.2 icmp_seq=2 ttl=64 time=0.588 ms
+84 bytes from 10.2.20.2 icmp_seq=3 ttl=64 time=0.847 ms
+84 bytes from 10.2.20.2 icmp_seq=4 ttl=64 time=0.599 ms
+84 bytes from 10.2.20.2 icmp_seq=5 ttl=64 time=0.565 ms
+
+PC10> ping 10.2.10.1
+host (255.255.255.0) not reachable
+
+PC10> ping 10.2.10.2
+host (255.255.255.0) not reachable
+```
 
 # IV. Need perfs
 
