@@ -340,10 +340,27 @@ Schéma d'une requête ARP lorsque PC3 ping PC5 et captures : [pc3-iou2](capture
 
 ```
 # AVANT
+IOU2#show spanning-tree
 
+VLAN0001
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32769
+             Address     aabb.cc00.0200
+             This bridge is the root
 # APRES
+conf t
+spanning-tree vlan 1 priority 4096
+IOU4#show spanning-tree
+
+VLAN0001
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    4097
+             Address     aabb.cc00.0400
+             This bridge is the root
 
 ```
+
+Les captures : [iou2-iou3](captures/iou2-iou3-stpchange.pcapng), [iou3-iou4](captures/iou3-iou4-stpchange.pcapng), [iou2-iou4](captures/iou2-iou4-stpchange.pcapng)
 
 #### 🐙 STP & Perfs
 
