@@ -16,17 +16,16 @@
       - [🐙 STP & Perfs](#%f0%9f%90%99-stp--perfs)
 - [III. Isolation](#iii-isolation)
   - [1. Simple](#1-simple)
-      - [Topologie](#topologie-1)
+      - [Topologie 3](#topologie-3)
       - [Plan d'adressage](#plan-dadressage-2)
-      - [ToDo](#todo)
   - [2. Avec trunk](#2-avec-trunk)
-      - [Topologie](#topologie-2)
+      - [Topologie](#topologie-1)
       - [Plan d'adressage](#plan-dadressage-3)
-      - [ToDo](#todo-1)
+      - [ToDo](#todo)
 - [IV. Need perfs](#iv-need-perfs)
-      - [Topologie](#topologie-3)
+      - [Topologie](#topologie-2)
       - [Plan d'adressage](#plan-dadressage-4)
-      - [ToDo](#todo-2)
+      - [ToDo](#todo-1)
 
 **Dans ce TP, vous pouvez considérez que :**
 * les `PC` sont [**des VPCS de GNS3**](/memo/setup-gns3.md#utilisation-dun-vpcs) (sauf indication contraire)
@@ -389,27 +388,81 @@ On voit bien que les trames ne circulent plus après les commandes : [pc4-iou3](
 
 ## 1. Simple
  
-#### Topologie
+#### Topologie 3
 ```
 +-----+        +-------+        +-----+
-| PC1 +--------+  SW1  +--------+ PC3 |
+| PC6 +--------+ IOU5  +--------+ PC8 |
 +-----+      10+-------+20      +-----+
                  20|
                    |
                 +--+--+
-                | PC2 |
+                | PC7 |
                 +-----+
 ```
+![screen GNS3](screens/infra1.png)
 
 #### Plan d'adressage
 
 Machine | IP `net1` | VLAN
 --- | --- | --- 
-`PC1` | `10.2.3.1/24` | 10
-`PC2` | `10.2.3.2/24` | 20
-`PC3` | `10.2.3.3/24` | 20
+`PC6` | `10.2.3.1/24` | 10
+`PC7` | `10.2.3.2/24` | 20
+`PC8` | `10.2.3.3/24` | 20
 
-#### ToDo
+Sur IOU5 :
+```
+IOU5#show vlan
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Et0/0, Et0/1, Et0/2, Et0/3
+                                                Et1/0, Et1/1, Et1/2, Et1/3
+                                                Et2/0, Et2/1, Et2/2, Et2/3
+                                                Et3/0, Et3/1, Et3/2, Et3/3
+IOU5#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+IOU5(config)#vlan 10
+IOU5(config-vlan)#name client-10
+IOU5(config-vlan)#exit
+IOU5(config)#interface et 0/0
+IOU5(config-if)#switchport mode access
+IOU5(config-if)#switchport access vlan 10
+IOU5(config-if)#exit
+IOU5(config)#vlan 20
+IOU5(config-vlan)#name client-20
+IOU5(config-vlan)#exit
+IOU5(config)#interface et 1/0
+IOU5(config-if)#switchport mode access
+IOU5(config-if)#switchport access vlan 20
+IOU5(config-if)#exit
+IOU5(config)#interface et 2/0
+IOU5(config-if)#switchport mode access
+IOU5(config-if)#switchport access vlan 20
+IOU5(config-if)#exit
+IOU5#show vlan
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Et0/1, Et0/2, Et0/3, Et1/1
+                                                Et1/2, Et1/3, Et2/1, Et2/2
+                                                Et2/3, Et3/0, Et3/1, Et3/2
+                                                Et3/3
+10   client-10                        active    Et0/0
+20   client-20                        active    Et1/0, Et2/0
+
+PC6> ping 10.2.3.2
+^C^Chost (10.2.3.2) not reachable
+PC6> ping 10.2.3.3
+^C^Chost (10.2.3.3) not reachable
+
+PC7> ping 10.2.3.3
+84 bytes from 10.2.3.3 icmp_seq=1 ttl=64 time=0.241 ms
+84 bytes from 10.2.3.3 icmp_seq=2 ttl=64 time=0.308 ms
+^C
+PC7> ping 10.2.3.1
+^C^Xhost (10.2.3.1) not reachable
+```
+(Seules les parties intéressantes du `show vlan` ont été gardées)
 
 * 🌞 mettre en place la topologie ci-dessus
   * voir [les commandes dédiées à la manipulation de VLANs](/memo/cli-cisco.md#vlan)
