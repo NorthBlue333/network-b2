@@ -360,27 +360,30 @@ VLAN0001
 
 ```
 
-Les captures : [iou2-iou3](captures/iou2-iou3-stpchange.pcapng), [iou3-iou4](captures/iou3-iou4-stpchange.pcapng), [iou2-iou4](captures/iou2-iou4-stpchange.pcapng)
+Les captures : [iou2-iou3](captures/iou2-iou3-stpchange.pcapng), [iou3-iou4](captures/iou3-iou4-stpchange.pcapng), [iou2-iou4](captures/iou2-iou4-stpchange.pcapng). On voit bien que dans les échanges STP : RST. TC + Root = 4096.
 
 #### 🐙 STP & Perfs
 
-Si vous avez lancé Wireshark sur un lien entre un PC et un Switch, vous avez vu qu'il y a toujours des trames STP qui circulent...
-* un peu con non ? C'est un PC, il enverra jamais de trames STP
-* aussi avec STP, quand on branche un PC, le lien mettra plusieurs secondes avant de passer en *forwarding* et ainsi transmettre de la donnée
-* l'idéal ça serait de désactiver l'envoi de trames STP sur l'interface du switch (ça évite de cramer de la bande passante et du calcul CPU pour rien, générer du trafic inutile, etc.)
-* sauuuuf que si un p'tit malin branche des switches là-dessus, il pourrait tout péter en créant une boucle
-* deux fonctionnalités à mettre en place : 
-  * `portfast` : marque un port comme *"edge"* dans la topologie STP. Un port *edge* est considéré comme une extrémité de la topologie (= un client branché dessus, port *access*). *Port**fast*** parce que ça va permettre au port de s'allumer plus rapidement (sans passer par les états *listening* et *learning* pendant 15 secondes chacun par défaut) et d'être disponible instantanément
-    * on peut voir l'état d'un port (forward, listening, learning, blocking avec `show spanning-tree vlan 1`)
-  * `bpduguard` : permet de shutdown le port s'il reçoit des *BPDU* (pour rappel : un *BPDU* c'est un message STP)  
-  
-Idem pour les trames CDP !
+Sur IOU3, l'interface `eth0/3` est reliée au PC :
+```
+IOU3#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+IOU3(config)#interface et 0/3
+IOU3(config)#interface et 0/3
+IOU3(config-if)#switchport mode access
+IOU3(config-if)#spanning-tree portfast
+%Warning: portfast should only be enabled on ports connected to a single
+ host. Connecting hubs, concentrators, switches, bridges, etc... to this
+ interface  when portfast is enabled, can cause temporary bridging loops.
+ Use with CAUTION
 
-🐙 ToDo :
-  * [activer ces fonctionnalités (*portfast* et *bpduguard*) et activer le filtre BPDU](/memo/cli-cisco.md#stp) sur les interfaces où c'est nécessaire (marqué comme *edge* dans la topologie STP)
-  * aussi [désactiver l'envoi de trames CDP](/memo/cli-cisco.md#cdp) sur ces ports
-    * prouver avec Wireshark que le switch n'envoie plus de BPDU ni de trames CDP
-    * faites une capture avant et une capture après les manips pour le prouver :)
+%Portfast has been configured on Ethernet0/3 but will only
+ have effect when the interface is in a non-trunking mode.
+IOU3(config-if)#spanning-tree bpduguard enable
+IOU3(config-if)#spanning-tree bpdufilter enable
+IOU3(config-if)#no cdp enable
+```
+On voit bien que les trames ne circulent plus après les commandes : [pc4-iou3](captures/pc4-iou3-stopstp.pcapng).
 
 # III. Isolation
 
