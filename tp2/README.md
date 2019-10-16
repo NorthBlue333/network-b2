@@ -398,7 +398,7 @@ On voit bien que les trames ne circulent plus après les commandes : [pc4-iou3](
                 | PC7 |
                 +-----+
 ```
-![screen GNS3](screens/infra3.png)
+![screen GNS3](screens/infra3.PNG)
 
 #### Plan d'adressage
 
@@ -483,7 +483,7 @@ PC7> ping 10.2.3.1
                 | PC10|          | PC11|
                 +-----+          +-----+
 ```
-![screen GNS3](screens/infra4.png)
+![screen GNS3](screens/infra4.PNG)
 
 #### Plan d'adressage
 
