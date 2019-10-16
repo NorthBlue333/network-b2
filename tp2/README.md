@@ -22,9 +22,8 @@
       - [Topologie 4](#topologie-4)
       - [Plan d'adressage](#plan-dadressage-3)
 - [IV. Need perfs](#iv-need-perfs)
-      - [Topologie](#topologie-1)
+      - [Topologie 5](#topologie-5)
       - [Plan d'adressage](#plan-dadressage-4)
-      - [ToDo](#todo)
 
 **Dans ce TP, vous pouvez considérez que :**
 * les `PC` sont [**des VPCS de GNS3**](/memo/setup-gns3.md#utilisation-dun-vpcs) (sauf indication contraire)
@@ -548,37 +547,91 @@ host (255.255.255.0) not reachable
 
 # IV. Need perfs
 
-#### Topologie
+#### Topologie 5
 
 Pareil qu'en [III.2.](#2-avec-trunk) à part le lien entre SW1 et SW2 qui est doublé.
 
 ```
 +-----+        +-------+--------+-------+        +-----+
-| PC1 +--------+  SW1  |        |  SW2  +--------+ PC4 |
+| PC13+--------+  IOU8 |        |  IOU9 +--------+ PC16|
 +-----+      10+-------+--------+-------+20      +-----+
                  20|              10|
                    |                |
                 +--+--+          +--+--+
-                | PC2 |          | PC3 |
+                | PC14|          | PC15|
                 +-----+          +-----+
 
 ```
+![screen GNS3](screens/infra5.PNG)
+
 #### Plan d'adressage
 
 Pareil qu'en [III.2.](#2-avec-trunk).
 
 Machine | IP `net1` | IP `net2` | VLAN
 --- | --- | --- | ---
-`PC1` | `10.2.10.1/24` | X | 10
-`PC2` | X | `10.2.20.1/24` | 20
-`PC3` | `10.2.10.2/24` | X | 10
-`PC4` | X | `10.2.20.2/24` | 20
+`PC13` | `10.2.10.1/24` | X | 10
+`PC14` | X | `10.2.20.1/24` | 20
+`PC15` | `10.2.10.2/24` | X | 10
+`PC16` | X | `10.2.20.2/24` | 20
 
-#### ToDo
+Mêmes commandes que la partie précédentes pour les VLAN.
 
-* 🌞 mettre en place la topologie ci-dessus
-  * configurer LACP entre `SW1` et `SW2`
-  * utiliser Wireshark pour mettre en évidence l'utilisation de trames LACP
-  * **vérifier avec un `show ip interface po1` que la bande passante a bien été doublée**
+Mêmes commandes sur IOU8 et IOU9 :
+```
+IOU9(config)#interface et 3/0
+IOU9(config-if)#switchport
+IOU9(config-if)#channel-protocol lacp
+IOU9(config-if)#channel-group 1 mode active
+Creating a port-channel interface Port-channel 1
 
-> Pas de failover possible sur les IOUs malheureusement :( (voir [ce doc](https://www.cisco.com/c/en/us/td/docs/switches/blades/3020/software/release/12-2_58_se/configuration/guide/3020_scg/swethchl.pdf), dernière section. Pas de link state dans les IOUs)
+IOU9(config-if)#exi
+IOU9(config)#interface et 3/1
+IOU9(config-if)#switchport
+IOU9(config-if)#channel-protocol lacp
+*Oct 16 18:28:01.513: %LINEPROTO-5-UPDOWN: Line protocol on Interface Port-channel1, changed state to up
+IOU9(config-if)#channel-protocol lacp
+IOU9(config-if)#channel-group 1 mode active
+IOU9(config-if)#exit
+IOU9(config)#exit
+IOU9#
+*Oct 16 18:28:08.664: %SYS-5-CONFIG_I: Configured from console by console
+IOU9#show ip interface po1
+Port-channel1 is up, line protocol is up
+  Inbound  access list is not set
+  Outgoing access list is not set
+IOU9#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+IOU9(config)#interface po1
+IOU9(config-if)#
+*Oct 16 18:30:24.559: %LINK-3-UPDOWN: Interface Port-channel1, changed state to up
+*Oct 16 18:30:25.563: %LINEPROTO-5-UPDOWN: Line protocol on Interface Port-channel1, changed state to up
+IOU9(config-if)#switchport trunk encapsulation dot1q
+IOU9(config-if)#switchport mode trunk
+IOU9(config-if)#switchport trunk allowed vlan 10,20
+IOU9(config-if)#exit
+IOU9(config)#exit
+```
+Vérifications :
+```
+PC13> ping 10.2.10.2
+84 bytes from 10.2.10.2 icmp_seq=1 ttl=64 time=0.729 ms
+84 bytes from 10.2.10.2 icmp_seq=2 ttl=64 time=0.670 ms
+84 bytes from 10.2.10.2 icmp_seq=3 ttl=64 time=0.563 ms
+84 bytes from 10.2.10.2 icmp_seq=4 ttl=64 time=0.676 ms
+84 bytes from 10.2.10.2 icmp_seq=5 ttl=64 time=0.573 ms
+
+PC13> ping 10.2.20.1
+host (255.255.255.0) not reachable
+
+PC14> ping 10.2.20.2
+84 bytes from 10.2.20.2 icmp_seq=1 ttl=64 time=0.676 ms
+84 bytes from 10.2.20.2 icmp_seq=2 ttl=64 time=1.036 ms
+84 bytes from 10.2.20.2 icmp_seq=3 ttl=64 time=0.604 ms
+84 bytes from 10.2.20.2 icmp_seq=4 ttl=64 time=0.507 ms
+84 bytes from 10.2.20.2 icmp_seq=5 ttl=64 time=0.510 ms
+
+PC14> ping 10.2.10.2
+host (255.255.255.0) not reachable
+```
+On voit bien les trames LACP ici [iou8-iou9-3-0](captures/iou8-iou9-3-0.pcapng) et ici [iou8-iou9-3-1](captures/iou8-iou9-3-1.pcapng), le ping ne passant que par les interfaces 3/0 et pas dupliqué.
