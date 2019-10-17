@@ -340,7 +340,7 @@ P1> ping 10.3.40.254
 84 bytes from 10.3.40.254 icmp_seq=4 ttl=255 time=6.177 ms
 84 bytes from 10.3.40.254 icmp_seq=5 ttl=255 time=5.570 ms
 ```
-(c'est bon j'ai compris pour le router, déso Leo je te rapporterai un gâteau si tu lis ça (ou une bière c'est sympa les bières))
+> (c'est bon j'ai compris pour le router, déso Leo je te rapporterai un gâteau si tu lis ça (ou une bière c'est sympa les bières))
 
 # II. Cas concret
 
