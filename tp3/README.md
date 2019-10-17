@@ -171,71 +171,33 @@ wr
 ```
 Vérifications :
 ```
-PC1> show ip
-
-NAME        : PC1[1]
-IP/MASK     : 10.3.10.1/24
-GATEWAY     : 255.255.255.0
-DNS         :
-MAC         : 00:50:79:66:68:00
-LPORT       : 10020
-RHOST:PORT  : 127.0.0.1:10021
-MTU:        : 1500
-
-PC1> ping 10.3.20.2
-host (255.255.255.0) not reachable
-
-PC1> ping 10.3.20.3
-host (255.255.255.0) not reachable
-
-PC1> ping 10.3.30.4
-host (255.255.255.0) not reachable
-
-PC1> ping 10.3.40.1
-host (255.255.255.0) not reachable
-
-PC1> ping 10.3.10.254
-84 bytes from 10.3.10.254 icmp_seq=1 ttl=255 time=9.304 ms
-84 bytes from 10.3.10.254 icmp_seq=2 ttl=255 time=5.612 ms
-84 bytes from 10.3.10.254 icmp_seq=3 ttl=255 time=1.894 ms
-84 bytes from 10.3.10.254 icmp_seq=4 ttl=255 time=0.971 ms
-84 bytes from 10.3.10.254 icmp_seq=5 ttl=255 time=9.059 ms
-
+# (sur PC2, PC3, PC4 et P1 on met les gateway avec la commande ip <addr> <gateway>)
 
 
 PC2> show ip
 
 NAME        : PC2[1]
 IP/MASK     : 10.3.20.2/24
-GATEWAY     : 255.255.255.0
+GATEWAY     : 10.3.20.254
 DNS         :
 MAC         : 00:50:79:66:68:01
 LPORT       : 10022
 RHOST:PORT  : 127.0.0.1:10023
 MTU:        : 1500
 
-PC2> ping 10.3.10.1
-host (255.255.255.0) not reachable
-
-PC2> ping 10.3.20.3
-84 bytes from 10.3.20.3 icmp_seq=1 ttl=64 time=0.304 ms
-84 bytes from 10.3.20.3 icmp_seq=2 ttl=64 time=0.426 ms
-84 bytes from 10.3.20.3 icmp_seq=3 ttl=64 time=0.608 ms
-84 bytes from 10.3.20.3 icmp_seq=4 ttl=64 time=0.763 ms
-84 bytes from 10.3.20.3 icmp_seq=5 ttl=64 time=0.519 ms
-
 PC2> ping 10.3.30.4
-host (255.255.255.0) not reachable
+10.3.30.4 icmp_seq=1 timeout
+84 bytes from 10.3.30.4 icmp_seq=2 ttl=63 time=11.648 ms
+84 bytes from 10.3.30.4 icmp_seq=3 ttl=63 time=16.019 ms
+84 bytes from 10.3.30.4 icmp_seq=4 ttl=63 time=10.777 ms
+84 bytes from 10.3.30.4 icmp_seq=5 ttl=63 time=16.340 ms
 
-PC2> ping 10.3.40.1
-host (255.255.255.0) not reachable
-
-PC2> ping 10.3.20.254
-84 bytes from 10.3.20.254 icmp_seq=1 ttl=255 time=9.708 ms
-84 bytes from 10.3.20.254 icmp_seq=2 ttl=255 time=6.440 ms
-84 bytes from 10.3.20.254 icmp_seq=3 ttl=255 time=5.919 ms
-84 bytes from 10.3.20.254 icmp_seq=4 ttl=255 time=5.602 ms
-84 bytes from 10.3.20.254 icmp_seq=5 ttl=255 time=5.966 ms
+PC2> ping 10.3.10.1
+10.3.10.1 icmp_seq=1 timeout
+10.3.10.1 icmp_seq=2 timeout
+10.3.10.1 icmp_seq=3 timeout
+10.3.10.1 icmp_seq=4 timeout
+10.3.10.1 icmp_seq=5 timeout
 
 
 
@@ -243,38 +205,26 @@ PC3> show ip
 
 NAME        : PC3[1]
 IP/MASK     : 10.3.20.3/24
-GATEWAY     : 255.255.255.0
+GATEWAY     : 10.3.20.254
 DNS         :
 MAC         : 00:50:79:66:68:02
 LPORT       : 10024
 RHOST:PORT  : 127.0.0.1:10025
 MTU:        : 1500
 
-PC3> ping 10.3.10.1
-host (255.255.255.0) not reachable
-
-PC3> ping 10.3.20.2
-84 bytes from 10.3.20.2 icmp_seq=1 ttl=64 time=0.518 ms
-84 bytes from 10.3.20.2 icmp_seq=2 ttl=64 time=0.688 ms
-84 bytes from 10.3.20.2 icmp_seq=3 ttl=64 time=0.476 ms
-84 bytes from 10.3.20.2 icmp_seq=4 ttl=64 time=0.512 ms
-84 bytes from 10.3.20.2 icmp_seq=5 ttl=64 time=0.643 ms
-
-PC3> ping 10.3.30.4
-host (255.255.255.0) not reachable
-
 PC3> ping 10.3.40.1
-host (255.255.255.0) not reachable
+84 bytes from 10.3.40.1 icmp_seq=1 ttl=63 time=11.140 ms
+84 bytes from 10.3.40.1 icmp_seq=2 ttl=63 time=16.664 ms
+84 bytes from 10.3.40.1 icmp_seq=3 ttl=63 time=15.931 ms
+84 bytes from 10.3.40.1 icmp_seq=4 ttl=63 time=15.873 ms
+84 bytes from 10.3.40.1 icmp_seq=5 ttl=63 time=19.914 ms
 
-PC3> ping 10.3.20.254
-84 bytes from 10.3.20.254 icmp_seq=1 ttl=255 time=9.742 ms
-84 bytes from 10.3.20.254 icmp_seq=2 ttl=255 time=8.421 ms
-84 bytes from 10.3.20.254 icmp_seq=3 ttl=255 time=7.162 ms
-84 bytes from 10.3.20.254 icmp_seq=4 ttl=255 time=6.468 ms
-84 bytes from 10.3.20.254 icmp_seq=5 ttl=255 time=6.025 ms
-
-PC3> ping 10.3.10.254
-host (255.255.255.0) not reachable
+PC3> ping 10.3.10.1
+10.3.10.1 icmp_seq=1 timeout
+10.3.10.1 icmp_seq=2 timeout
+10.3.10.1 icmp_seq=3 timeout
+10.3.10.1 icmp_seq=4 timeout
+10.3.10.1 icmp_seq=5 timeout
 
 
 
@@ -310,35 +260,29 @@ PC4> ping 10.3.30.254
 
 
 
-P1> show ip
+PC4> show ip
 
-NAME        : P1[1]
-IP/MASK     : 10.3.40.1/24
-GATEWAY     : 255.255.255.0
+NAME        : PC4[1]
+IP/MASK     : 10.3.30.4/24
+GATEWAY     : 10.3.30.254
 DNS         :
-MAC         : 00:50:79:66:68:04
-LPORT       : 10028
-RHOST:PORT  : 127.0.0.1:10029
+MAC         : 00:50:79:66:68:03
+LPORT       : 10022
+RHOST:PORT  : 127.0.0.1:10023
 MTU:        : 1500
 
-P1> ping 10.3.10.1
-host (255.255.255.0) not reachable
+PC4> ping 10.3.40.1
+10.3.40.1 icmp_seq=1 timeout
+10.3.40.1 icmp_seq=2 timeout
+84 bytes from 10.3.40.1 icmp_seq=3 ttl=63 time=19.202 ms
+84 bytes from 10.3.40.1 icmp_seq=4 ttl=63 time=12.501 ms
+84 bytes from 10.3.40.1 icmp_seq=5 ttl=63 time=19.095 ms
 
-P1> ping 10.3.20.2
-host (255.255.255.0) not reachable
+PC4> ping 10.3.10.1
+10.3.10.1 icmp_seq=1 timeout
+10.3.10.1 icmp_seq=2 timeout
+10.3.10.1 icmp_seq=3 timeout
 
-P1> ping 10.3.20.3
-host (255.255.255.0) not reachable
-
-P1> ping 10.3.30.4
-host (255.255.255.0) not reachable
-
-P1> ping 10.3.40.254
-84 bytes from 10.3.40.254 icmp_seq=1 ttl=255 time=9.065 ms
-84 bytes from 10.3.40.254 icmp_seq=2 ttl=255 time=6.102 ms
-84 bytes from 10.3.40.254 icmp_seq=3 ttl=255 time=5.895 ms
-84 bytes from 10.3.40.254 icmp_seq=4 ttl=255 time=6.177 ms
-84 bytes from 10.3.40.254 icmp_seq=5 ttl=255 time=5.570 ms
 ```
 > (c'est bon j'ai compris pour le router, déso Leo je te rapporterai un gâteau si tu lis ça (ou une bière c'est sympa les bières))
 
@@ -357,6 +301,49 @@ Stagiaires | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
 Serveurs | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ |
 Serveurs sensibles | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
 Imprimantes | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+
+Table d'adressage :
+| hostname | net10 | net23 | net24 | net25 | net33 | net34 | net35 | net41 | net43 | net44 | net45 | net50 | net60 |
+|:--------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|
+| U1 | X | 10.4.23.100 | X | X | X | X | X | X | X | X | X | X | X |
+| U2 | X | 10.4.23.101 | X | X | X | X | X | X | X | X | X | X | X |
+| U3 | X | 10.4.23.102 | X | X | X | X | X | X | X | X | X | X | X |
+| U4 | X | 10.4.23.103 | X | X | X | X | X | X | X | X | X | X | X |
+| U5 | X | 10.4.23.104 | X | X | X | X | X | X | X | X | X | X | X |
+| U6 | X | 10.4.23.105 | X | X | X | X | X | X | X | X | X | X | X |
+| U7 | X | X | 10.4.24.100 | X | X | X | X | X | X | X | X | X | X |
+| U8 | X | X | 10.4.24.101 | X | X | X | X | X | X | X | X | X | X |
+| U9 | X | X | 10.4.24.102 | X | X | X | X | X | X | X | X | X | X |
+| U10 | X | X | 10.4.24.103 | X | X | X | X | X | X | X | X | X | X |
+| U11 | X | X | X | 10.4.25.100 | X | X | X | X | X | X | X | X | X |
+| U12 | X | X | X | 10.4.25.101 | X | X | X | X | X | X | X | X | X |
+| U13 | X | X | X | 10.4.25.102 | X | X | X | X | X | X | X | X | X |
+| U14 | X | X | X | 10.4.25.103 | X | X | X | X | X | X | X | X | X |
+| U15 | X | X | X | 10.4.25.104 | X | X | X | X | X | X | X | X | X |
+| U16 | X | X | X | 10.4.25.105 | X | X | X | X | X | X | X | X | X |
+| S1 | X | X | X | X | 10.4.33.100 | X | X | X | X | X | X | X | X |
+| S2 | X | X | X | X | 10.4.33.101 | X | X | X | X | X | X | X | X |
+| S3 | X | X | X | X | X | 10.4.34.100 | X | X | X | X | X | X | X |
+| S4 | X | X | X | X | X | 10.4.34.101 | X | X | X | X | X | X | X |
+| S5 | X | X | X | X | X | 10.4.34.102 | X | X | X | X | X | X | X |
+| S6 | X | X | X | X | X | X | 10.4.35.100 | X | X | X | X | X | X |
+| S7 | X | X | X | X | X | X | 10.4.35.101 | X | X | X | X | X | X |
+| S8 | X | X | X | X | X | X | 10.4.35.102 | X | X | X | X | X | X |
+| A1 | 10.4.10.100 | X | X | X | X | X | X | X | X | X | X | X | X |
+| A2 | 10.4.10.101 | X | X | X | X | X | X | X | X | X | X | X | X |
+| A3 | 10.4.10.102 | X | X | X | X | X | X | X | X | X | X | X | X |
+| P1 | X | X | X | X | X | X | X | X | 10.4.43.100 | X | X | X | X |
+| P2 | X | X | X | X | X | X | X | X | X | 10.4.44.100 | X | X | X |
+| P3 | X | X | X | X | X | X | X | X | X | X | 10.4.45.100 | X | X |
+| P4 | X | X | X | X | X | X | X | X | X | X | 10.4.45.101 | X | X |
+| P5 | X | X | X | X | X | X | X | 10.4.41.100 | X | X | X | X | X |
+| SRV1 | X | X | X | X | X | X | X | X | X | X | X | X | 10.4.60.100 |
+| SRV2 | X | X | X | X | X | X | X | X | X | X | X | 10.4.50.100 | X |
+| SRV3 | X | X | X | X | X | X | X | X | X | X | X | 10.4.50.101 | X |
+| SRV4 | X | X | X | X | X | X | X | X | X | X | X | 10.4.50.102 | X |
+| SRV5 | X | X | X | X | X | X | X | X | X | X | X | 10.4.50.103 | X |
+| SRV6 | X | X | X | X | X | X | X | X | X | X | X | X | 10.4.60.101 |
+| R1 | 10.4.10.254 | 10.4.23.254 | 10.4.24.254 | 10.4.25.254 | 10.4.33.254 | 10.4.34.254 | 10.4.35.254 | 10.4.41.254 | 10.4.43.254 | 10.4.44.254 | 10.4.45.254 | 10.4.50.254 | 10.4.60.254 |
 
 ---
 
