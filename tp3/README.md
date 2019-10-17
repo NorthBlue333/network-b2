@@ -4,38 +4,8 @@
 
 - [TP3 : Routage INTER-VLAN + mise en situation](#tp3--routage-inter-vlan--mise-en-situation)
 - [Sommaire](#sommaire)
-- [Intro](#intro)
-- [0. Etapes préliminaires](#0-etapes-pr%c3%a9liminaires)
 - [I. *Router-on-a-stick*](#i-router-on-a-stick)
 - [II. Cas concret](#ii-cas-concret)
-
-# Intro
-
-On va aborder un cas un peu plus concret dans ce TP. Vous aurez besoin d'un peu de votre créativité pour arriver jusqu'au bout.  
-
-Vous aller avoir besoin d'un routeur dans ce TP et de quelques petits détails de conf qu'on a pas encore vu.  
-
-Afin de vous refaire pratiquer un peu, et de vous faire aborder ces quelques nouvelles notions, **le TP se découpe en deux temps** :
-* **appréhension d'une topologie classique : *Router-on-a-stick***
-  * on remet un peu du routeur là dedans, et on aborde le routage inter-VLAN
-  * partie courte, c'est une intro à la seconde partie
-* **cas concret**
-  * je vous soumets un problème, vous me répondez avec une infra :)
-
-Comme toujours...  
-**Allez à votre rythme, prenez le temps de comprendre.**  
-**Posez des questions.**  
-**Prenez des notes au fur et à mesure.**  
-**Lisez les parties en entier avant de commencer à travailler dessus.**
-
-> **Référez-vous [au README des TPs](/tp/README.md) pour des infos sur le déroulement et le rendu des TPs.**
-
-# 0. Etapes préliminaires
-
-* avoir lu [le README des TPs](/tp/README.md)
-* **Wireshark** installé
-* GNS3 fonctionnel (lecture du [mémo/setup GNS3](/memo/setup-gns3.md))
-* Lecture du [mémo CLI Cisco](/memo/cli-cisco.md)
 
 **Dans ce TP, vous pouvez considérez que :**
 * les `PC` sont [des VPCS de GNS3](/memo/setup-gns3.md#utilisation-dun-vpcs) (sauf indication contraire)
@@ -45,16 +15,6 @@ Comme toujours...
 * les `R` sont des routeurs, virtualisé avec l'iOS dispo ici : [Cisco 3640](https://drive.google.com/drive/folders/1DFe2u5tZldL_y_UYm32ZbmT0cIfgQM2p)
 
 # I. *Router-on-a-stick*
-
-C'est le cas d'école typique pour mettre en place du routage inter-VLAN.  
-
-L'idée est de pouvoir autoriser certains VLANs à se joindre, mais pas d'autres :
-* avec les VLANs on isole les gens au niveau 2 (Ethernet)
-* avec le routage inter-VLAN, on permet de passer outre les VLANs en faisant appel au niveau 3
-* **l'idée c'est qu'à aucun moment on change le fonctionnement des VLANs, on autorise juste un routeur à faire son taff : router entre deux réseaux**, qu'ils correspondent à des VLANs différents ou non
-* let's goooo
-
-Schéma moche ftw :
 
 ```
              +--+
@@ -73,6 +33,7 @@ Schéma moche ftw :
              |PC2|      |PC3|
              +---+      +---+
 ```
+![infra1](screens/infra1.png)
 
 **Tableau des réseaux utilisés**
 
@@ -106,38 +67,282 @@ PC4 | 30 | x | x |  `10.3.30.4/24` | x | x
 P1 | 40 | x | x | x | `10.3.40.1/24` 
 R1 | x |  `10.3.10.254/24` | `10.3.20.254/24` | `10.3.30.254/24` | `10.3.40.254/24` 
 
-**Instructions** (pretty straightforward) :
-* Setup this shit
-* You'll need inter-VLAN routing to make it work properly
-  * se référer au [mémo Cisco section sous-interface](/memo/cli-cisco.md#sous-interface)
-* 🌞 Prove me that your setup is actually working
-  * think about VLANs, `ping`, etc.
+SW1 :
+```
+SW1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW1(config)#vlan 10
+SW1(config-vlan)#name users
+SW1(config-vlan)#exit
+SW1(config)#vlan 20
+SW1(config-vlan)#name admins
+SW1(config-vlan)#exi
+SW1(config)#vlan 30
+SW1(config-vlan)#name visitors
+SW1(config-vlan)#exit
+SW1(config)#vlan 40
+SW1(config-vlan)#name printers
+SW1(config-vlan)#exit
+SW1(config)#interface et 2/0
+SW1(config-if)#switchport mode access
+SW1(config-if)#switchport access vlan 10
+SW1(config-if)#exit
+SW1(config)#interface et 2/1
+SW1(config-if)#switchport mode access
+SW1(config-if)#switchport access vlan 20
+SW1(config-if)#exit
+SW1(config)#interface et 3/0
+SW1(config-if)#switchport trunk encapsulation dot1q
+SW1(config-if)#switchport mode trunk
+SW1(config-if)#switchport trunk allowed vlan 10,20,30,40
+SW1(config-if)#exit
+SW1(config)#interface et 0/0
+SW1(config-if)#switchport trunk encapsulation dot1q
+SW1(config-if)#switchport mode trunk
+SW1(config-if)#switchport trunk allowed vlan 10,20,30,40
+SW1(config-if)#exit
+SW1(config)#exit
+wr
+```
 
-**CHECK MATE !**
+SW2 :
+```
+SW2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW2(config)#vlan 10
+SW2(config-vlan)#name users
+SW2(config-vlan)#exit
+SW2(config)#vlan 20
+SW2(config-vlan)#name admins
+SW2(config-vlan)#exit
+SW2(config)#vlan 3
+SW2(config-vlan)#exit
+SW2(config)#vlan 30
+SW2(config-vlan)#name visitors
+SW2(config-vlan)#exit
+SW2(config)#vlan 40
+SW2(config-vlan)#name printers
+SW2(config-vlan)#exit
+SW2(config)#interface et 2/0
+SW2(config-if)#switchport mode access
+SW2(config-if)#switchport access vlan 20
+SW2(config-if)#exit
+SW2(config)#interface et 2/1
+SW2(config-if)#switchport mode access
+SW2(config-if)#switchport access vlan 40
+SW2(config-if)#exit
+SW2(config)#interface et 2/2
+SW2(config-if)#switchport mode access
+SW2(config-if)#switchport access vlan 30
+SW2(config-if)#exit
+SW2(config)#interface et 3/0
+SW2(config-if)#switchport trunk encapsulation dot1q
+SW2(config-if)#switchport mode trunk
+SW2(config-if)#switchport trunk allowed vlan 10,20,30,40
+SW2(config-if)#exit
+SW2(config)#exit
+wr
+```
+R1 :
+```
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#interface et 0/0.10
+R1(config-subif)#encapsulation dot1q 10
+R1(config-subif)#ip address 10.3.10.254 255.255.255.0
+R1(config-subif)#exit
+R1(config)#interface et 0/0.20
+R1(config-subif)#encapsulation dot1q 20
+R1(config-subif)#ip address 10.3.20.254 255.255.255.0
+R1(config-subif)#exit
+R1(config)#interface et 0/0.30
+R1(config-subif)#encapsulation dot1q 30
+R1(config-subif)#ip address 10.3.30.254 255.255.255.0
+R1(config-subif)#exit
+R1(config)#interface et 0/0.40
+R1(config-subif)#encapsulation dot1q 40
+R1(config-subif)#ip address 10.3.40.254 255.255.255.0
+R1(config-subif)#exit
+R1(config)#interface et 0/0
+R1(config-if)#no shut
+R1(config-if)#exit
+R1(config)#exit
+wr
+```
+Vérifications :
+```
+PC1> show ip
+
+NAME        : PC1[1]
+IP/MASK     : 10.3.10.1/24
+GATEWAY     : 255.255.255.0
+DNS         :
+MAC         : 00:50:79:66:68:00
+LPORT       : 10020
+RHOST:PORT  : 127.0.0.1:10021
+MTU:        : 1500
+
+PC1> ping 10.3.20.2
+host (255.255.255.0) not reachable
+
+PC1> ping 10.3.20.3
+host (255.255.255.0) not reachable
+
+PC1> ping 10.3.30.4
+host (255.255.255.0) not reachable
+
+PC1> ping 10.3.40.1
+host (255.255.255.0) not reachable
+
+PC1> ping 10.3.10.254
+84 bytes from 10.3.10.254 icmp_seq=1 ttl=255 time=9.304 ms
+84 bytes from 10.3.10.254 icmp_seq=2 ttl=255 time=5.612 ms
+84 bytes from 10.3.10.254 icmp_seq=3 ttl=255 time=1.894 ms
+84 bytes from 10.3.10.254 icmp_seq=4 ttl=255 time=0.971 ms
+84 bytes from 10.3.10.254 icmp_seq=5 ttl=255 time=9.059 ms
+
+
+
+PC2> show ip
+
+NAME        : PC2[1]
+IP/MASK     : 10.3.20.2/24
+GATEWAY     : 255.255.255.0
+DNS         :
+MAC         : 00:50:79:66:68:01
+LPORT       : 10022
+RHOST:PORT  : 127.0.0.1:10023
+MTU:        : 1500
+
+PC2> ping 10.3.10.1
+host (255.255.255.0) not reachable
+
+PC2> ping 10.3.20.3
+84 bytes from 10.3.20.3 icmp_seq=1 ttl=64 time=0.304 ms
+84 bytes from 10.3.20.3 icmp_seq=2 ttl=64 time=0.426 ms
+84 bytes from 10.3.20.3 icmp_seq=3 ttl=64 time=0.608 ms
+84 bytes from 10.3.20.3 icmp_seq=4 ttl=64 time=0.763 ms
+84 bytes from 10.3.20.3 icmp_seq=5 ttl=64 time=0.519 ms
+
+PC2> ping 10.3.30.4
+host (255.255.255.0) not reachable
+
+PC2> ping 10.3.40.1
+host (255.255.255.0) not reachable
+
+PC2> ping 10.3.20.254
+84 bytes from 10.3.20.254 icmp_seq=1 ttl=255 time=9.708 ms
+84 bytes from 10.3.20.254 icmp_seq=2 ttl=255 time=6.440 ms
+84 bytes from 10.3.20.254 icmp_seq=3 ttl=255 time=5.919 ms
+84 bytes from 10.3.20.254 icmp_seq=4 ttl=255 time=5.602 ms
+84 bytes from 10.3.20.254 icmp_seq=5 ttl=255 time=5.966 ms
+
+
+
+PC3> show ip
+
+NAME        : PC3[1]
+IP/MASK     : 10.3.20.3/24
+GATEWAY     : 255.255.255.0
+DNS         :
+MAC         : 00:50:79:66:68:02
+LPORT       : 10024
+RHOST:PORT  : 127.0.0.1:10025
+MTU:        : 1500
+
+PC3> ping 10.3.10.1
+host (255.255.255.0) not reachable
+
+PC3> ping 10.3.20.2
+84 bytes from 10.3.20.2 icmp_seq=1 ttl=64 time=0.518 ms
+84 bytes from 10.3.20.2 icmp_seq=2 ttl=64 time=0.688 ms
+84 bytes from 10.3.20.2 icmp_seq=3 ttl=64 time=0.476 ms
+84 bytes from 10.3.20.2 icmp_seq=4 ttl=64 time=0.512 ms
+84 bytes from 10.3.20.2 icmp_seq=5 ttl=64 time=0.643 ms
+
+PC3> ping 10.3.30.4
+host (255.255.255.0) not reachable
+
+PC3> ping 10.3.40.1
+host (255.255.255.0) not reachable
+
+PC3> ping 10.3.20.254
+84 bytes from 10.3.20.254 icmp_seq=1 ttl=255 time=9.742 ms
+84 bytes from 10.3.20.254 icmp_seq=2 ttl=255 time=8.421 ms
+84 bytes from 10.3.20.254 icmp_seq=3 ttl=255 time=7.162 ms
+84 bytes from 10.3.20.254 icmp_seq=4 ttl=255 time=6.468 ms
+84 bytes from 10.3.20.254 icmp_seq=5 ttl=255 time=6.025 ms
+
+PC3> ping 10.3.10.254
+host (255.255.255.0) not reachable
+
+
+
+PC4> show ip
+
+NAME        : PC4[1]
+IP/MASK     : 10.3.30.4/24
+GATEWAY     : 255.255.255.0
+DNS         :
+MAC         : 00:50:79:66:68:03
+LPORT       : 10026
+RHOST:PORT  : 127.0.0.1:10027
+MTU:        : 1500
+
+PC4> ping 10.3.10.1
+host (255.255.255.0) not reachable
+
+PC4> ping 10.3.20.2
+host (255.255.255.0) not reachable
+
+PC4> ping 10.3.20.3
+host (255.255.255.0) not reachable
+
+PC4> ping 10.3.40.1
+host (255.255.255.0) not reachable
+
+PC4> ping 10.3.30.254
+84 bytes from 10.3.30.254 icmp_seq=1 ttl=255 time=9.628 ms
+84 bytes from 10.3.30.254 icmp_seq=2 ttl=255 time=7.323 ms
+84 bytes from 10.3.30.254 icmp_seq=3 ttl=255 time=7.714 ms
+84 bytes from 10.3.30.254 icmp_seq=4 ttl=255 time=7.262 ms
+84 bytes from 10.3.30.254 icmp_seq=5 ttl=255 time=6.442 ms
+
+
+
+P1> show ip
+
+NAME        : P1[1]
+IP/MASK     : 10.3.40.1/24
+GATEWAY     : 255.255.255.0
+DNS         :
+MAC         : 00:50:79:66:68:04
+LPORT       : 10028
+RHOST:PORT  : 127.0.0.1:10029
+MTU:        : 1500
+
+P1> ping 10.3.10.1
+host (255.255.255.0) not reachable
+
+P1> ping 10.3.20.2
+host (255.255.255.0) not reachable
+
+P1> ping 10.3.20.3
+host (255.255.255.0) not reachable
+
+P1> ping 10.3.30.4
+host (255.255.255.0) not reachable
+
+P1> ping 10.3.40.254
+84 bytes from 10.3.40.254 icmp_seq=1 ttl=255 time=9.065 ms
+84 bytes from 10.3.40.254 icmp_seq=2 ttl=255 time=6.102 ms
+84 bytes from 10.3.40.254 icmp_seq=3 ttl=255 time=5.895 ms
+84 bytes from 10.3.40.254 icmp_seq=4 ttl=255 time=6.177 ms
+84 bytes from 10.3.40.254 icmp_seq=5 ttl=255 time=5.570 ms
+```
+(c'est bon j'ai compris pour le router, déso Leo je te rapporterai un gâteau si tu lis ça (ou une bière c'est sympa les bières))
 
 # II. Cas concret
-
-> C'est cool si vous jouez un peu le jeu et que vous imaginez quelque chose d'original. *Vous pouvez (comme aux autres TPs) pomper sur les autres mais ça a encore moins d'intérêt que d'habitude n_n !*
-
-**Creusez-vous un peu la tête.**  
-
-Le but est de mettre en place une infra qui répond au besoin des bureaux représentés ci-dessous :
-
-![Yo](./pics/schema-II.png)
-
-* `R1` `R3` `R4` et `R5` sont des bureaux avec des utilisateurs
-* `R2` est une salle serveur 
-* le bâtiment a une taille de 20m x 20m (approximativement, vous en aurez besoin sur la fin)
-
-**C'est quoi ces machines ?**
-
-Type | Nom | Rôle | Dans GNS 
---- | --- | --- | ---
-`A` | Admins | Accès à tout à frer. Full power. | VPCS
-`U` | Users | Accès à un peu moins. | VPCS
-`S` | Stagiaires | Encore un peu moins. | VPCS
-`SRV` | Serveurs | Services hébergés en local. Ceux encadrés en rouge sont des **serveurs sensibles ou SS** | VPCS (ou autre si explicitement demandé)
-`P` | Imprimantes | Imprimantes dispo en réseau
 
 **Qui a accès à qui exactement ?**
 
@@ -152,39 +357,6 @@ Stagiaires | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
 Serveurs | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ |
 Serveurs sensibles | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
 Imprimantes | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-
-**Exceptions** *(ce sont des bonus, voir la fin du TP*)
-* tous les postes ne peuvent joindre que l'imprimante de leur propre salle
-* les serveurs sensibles n'ont pas accès à internet
-* seul l'admin 1 (`A1`) a accès au serveur 4 (`SRV4`)
-
----
-
-**TODO**
-* setup this shit in GNS3
-  * matériel autorisé : routeurs (Cisco 3640), switches (IOU L2 Cisco), VPCS
-  * outils : routage statique, VLAN, votre talent
-* pour la partie soft
-  * 🌞 dimensionnez intelligemment les réseaux
-    * prévoyez une augmentation légère
-  * 🌞 permettre un accès internet à tout le monde
-* pour la partie hard
-  * 🌞 proposez un nombre de routeur et de switches et précisez à quel endroit physique ils se trouveront
-  * 🌞 précisez le nombre de câbles nécessaires et une longueur (approximative)
-    * court : moins de 1m
-    * moyen : entre 1 et 5m
-    * long : 5m+
-    * **le but c'est d'avoir un ordre de grandeur**, on s'en fout complet des tailles exactes pour ce TP
-* 🌞 livrer, en plus de l'infra, des éléments qui rendent compte de l'infra (de façon simple)
-  * schéma réseau (screen GNS ?)
-  * référez-vous à la partie I. (tableau des réseaux utilisés, tableau d'adressage)
-* **être en mesure de prouver que l'infra fonctionne comme demandé**
-
-**Conseils**
-* **avant de vous lancer** réfléchissez aux différentes étapes qui vous permettront de réaliser le TP
-  * je vous conseille par exemple de faire un schéma et un plan d'adressage **en premier**
-* documentez ce que vous faites au fur et à mesure
-* n'oubliez pas de sauvegarder la configuration des équipements réseau et celle des VPCS
 
 ---
 
