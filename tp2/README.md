@@ -357,7 +357,7 @@ VLAN0001
 
 ```
 
-Les captures : [iou2-iou3](captures/iou2-iou3-stpchange.pcapng), [iou3-iou4](captures/iou3-iou4-stpchange.pcapng), [iou2-iou4](captures/iou2-iou4-stpchange.pcapng). On voit bien que dans les échanges STP : RST. TC + Root = 4096.
+Les captures : [iou2-iou3](captures/iou2-iou3-stpchange.pcapng), [iou3-iou4](captures/iou3-iou4-stpchange.pcapng), [iou2-iou4](captures/iou2-iou4-stpchange.pcapng). On voit bien que dans les échanges STP, la nouvelle mac considérée comme ROOT BRIDGE est celle de IOU4 (aa:bb:cc:00:04:00)
 
 #### 🐙 STP & Perfs
 
@@ -461,12 +461,6 @@ PC7> ping 10.2.3.1
 ^C^Xhost (10.2.3.1) not reachable
 ```
 (Seules les parties intéressantes du `show vlan` ont été gardées)
-
-* 🌞 mettre en place la topologie ci-dessus
-  * voir [les commandes dédiées à la manipulation de VLANs](/memo/cli-cisco.md#vlan)
-* 🌞 faire communiquer les PCs deux à deux
-  * vérifier que `PC2` ne peut joindre que `PC3`
-  * vérifier que `PC1` ne peut joindre personne alors qu'il est dans le même réseau (sad)
 
 ## 2. Avec trunk
 
