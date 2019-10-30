@@ -359,6 +359,9 @@ On a décidé de mettre les serveurs sensibles sur un switch différent et dans 
 
 Après de nombreux tests, l'infra semble fonctionner (on n'est pas à l'abri d'erreurs évidemment...). On a tout fait en CLI en live, en sauvegardant les configs. Pour éviter la lourdeur, je n'ai mis que les configurations, mais l'infra est montable.
 
+
+Le bonus pas fait pour l'instant :
+* Mettre en place un dhcp
   * il devra 
     * s'intégrer à l'existant
     * être installé sur une VM dédiée (Virtualbox, Workstation)
