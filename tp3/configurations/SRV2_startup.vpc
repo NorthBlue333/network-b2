@@ -1,0 +1,9 @@
+# This the configuration for SRV1
+#
+# Uncomment the following line to enable DHCP
+# dhcp
+# or the line below to manually setup an IP address and subnet mask
+ip 10.4.50.100 10.4.50.254
+#
+
+set pcname SRV2

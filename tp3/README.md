@@ -350,14 +350,15 @@ Table d'adressage (tous les réseaux sont /24) :
 
 Toutes les configurations sont [ici](configurations). Bon courage...
 
-Selon cette infra, il y aurait deux switches et un routeur, idéalement situés dans la salle serveur pour réguler leur accès (logiquement l'accès à la salle serveur est restreint, ce qui permet d'éviter certaines failles de sécurité). 
+Les réseaux sont tous en /24 (oui on a lu le "dimensionnez intelligemment les réseaux" après avoir fait le tableau d'adressage...), soit 254 machines par sous-réseau. Mais logiquement on pourrait les mettre en place en /26 pour 62 machines voire /27 pour 30 machines (mais c'est juste). On va considérer que cette infra permet une grosse augmentation du nombre de machines. Selon cette infra, il y aurait deux switches et un routeur, idéalement situés dans la salle serveur pour réguler leur accès (logiquement l'accès à la salle serveur est restreint, ce qui permet d'éviter certaines failles de sécurité). En considérant que la salle serveur est située entre 8m et 12m en hauteur (y) et 0m et 5m en largeur (x). On va considérer qu'il y a un rack en 5,8 (x,y) avec les deux switches et le routeur pour plus de facilités. Le switch premier switch doit avoir idéalement au minimum 12 adaptateurs, pour permettre l'ajout de quelques clients, mais au mieux 16 adaptateurs pour avoir assurément la place pour une grosse augmentation. Le deuxième switch n'étant utilisé que pour les serveurs sensibles, il n'a besoin que de 2 adaptateurs (voire plus si on prévoit une augmentation). Le routeur ici quant à lui n'a besoin que de deux ports (un pour le switch, un pour le NAT). Les câbles :
+* 4 courts (SRV2 et les liens switchs <> switchs et switchs <> routeur (et NAT))
+* 10 moyens (P1, U4, U5, U6, S2 et les autres serveurs)
+* 27 longs (le reste)
 
----
+On a décidé de mettre les serveurs sensibles sur un switch différent et dans un vlan à part pour être sûr qu'il n'y ait pas de faille de sécurité. Tous les autres serveurs et clients sont sur le même switch pour économiser. Grâce au vlan, on peut mettre en place certaines communications simples internes au réseau, cependant les clients ne communiquent pas entre eux d'une salle à l'autre, et les différents vlans ne peuvent pas communiquer entre eux non plus. Pour pouvoir résoudre ces problèmes, on met en place le routeur avec des sous-interfaces et de l'encapsulation dot1q. On met également en place des ACL (access-list) qui permettent de définir des règles de communication entre réseaux. Le routeur a également une interface NAT, avec une IP attribuée en DHCP. Grâce aux ACL, on peut définir que les stagiaires ne communiquent qu'entre eux par exemple, ou que les clients n'ont accès qu'aux imprimantes de leur salle, ou encore permettre ou non l'accès à internet (ici les imprimantes et les serveurs sensibles n'ont pas d'accès internet). Toutes les ACL mises en place fonctionnent pour n'importe quelle IP (si elle est attribuée sur le bon réseau). Le seul problème : SRV4 accessible seulement par A1. On voulait initialement définir cet accès dans les ACL avec les adresses MAC (comme ça si les IPs changent, l'accès reste), mais malgré de nombreuses recherches, les commandes trouvées ne fonctionnaient pas sur ce routeur. On a donc définit une règle dans les ACL avec les IPs (SRV4 c'est 10.4.50.102 et A1 c'est 10.4.10.100). Pour pouvoir définir cette règle, on utilise une ACL étendue (la 150). Les ,numéros des autres ACL correspondent au numéro du vlan/à la dizaine du vlan.
 
-**Bonus**
-* 🐙 mettre en place les exceptions
-  * documentez-vous, proposez des choses
-* 🐙 mettre en place un serveur DHCP 
+Après de nombreux tests, l'infra semble fonctionner (on n'est pas à l'abri d'erreurs évidemment...). On a tout fait en CLI en live, en sauvegardant les configs. Pour éviter la lourdeur, je n'ai mis que les configurations, mais l'infra est montable.
+
   * il devra 
     * s'intégrer à l'existant
     * être installé sur une VM dédiée (Virtualbox, Workstation)
