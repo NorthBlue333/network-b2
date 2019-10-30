@@ -346,6 +346,12 @@ Table d'adressage (tous les réseaux sont /24) :
 | SRV6 | X | X | X | X | X | X | X | X | X | X | X | X | 10.4.60.101 |
 | R1 | 10.4.10.254 | 10.4.23.254 | 10.4.24.254 | 10.4.25.254 | 10.4.33.254 | 10.4.34.254 | 10.4.35.254 | 10.4.41.254 | 10.4.43.254 | 10.4.44.254 | 10.4.45.254 | 10.4.50.254 | 10.4.60.254 |
 
+![infra2](screens/infra2.png)
+
+Toutes les configurations sont [ici](configurations). Bon courage...
+
+Selon cette infra, il y aurait deux switches et un routeur, idéalement situés dans la salle serveur pour réguler leur accès (logiquement l'accès à la salle serveur est restreint, ce qui permet d'éviter certaines failles de sécurité). 
+
 ---
 
 **Bonus**
