@@ -1,0 +1,16 @@
+---
+- hosts: cisco
+  gather_facts: no
+  connection: local
+
+  tasks:
+    - name: Store running-config
+      ios_command:
+        commands:
+          - show running-config all
+      register: config
+
+    - name: Save running-config on control node
+      copy:
+        content: "{{ config.stdout[0] }}"
+        dest: "../backups/show_run_{{ inventory_hostname }}.txt"

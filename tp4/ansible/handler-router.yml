@@ -1,0 +1,16 @@
+---
+- name: restart interface 0/0
+  ios_config:
+    parents: interface FastEthernet0/0
+    lines:
+      - no shutdown
+- name: restart interface 1/0
+  ios_config:
+    parents: interface FastEthernet1/0
+    lines:
+      - no shutdown
+- name: restart interface 1/1
+  ios_config:
+    parents: interface FastEthernet1/1
+    lines:
+      - no shutdown

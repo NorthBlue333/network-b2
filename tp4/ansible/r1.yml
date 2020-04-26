@@ -1,0 +1,43 @@
+---
+- hosts: r1
+  gather_facts: no
+  connection: local
+
+  tasks:
+    - name: conf fastEthernet0/0
+      ios_config:
+        parents: interface FastEthernet0/0
+        lines:
+          - ip address dhcp
+          - ip nat outside
+      notify: restart interface 0/0
+
+    - name: conf fastEthernet1/0
+      ios_config:
+        parents: interface FastEthernet1/0
+        lines:
+          - ip address 10.10.30.220 255.255.255.0
+          - ip nat inside
+      notify: restart interface 1/0
+
+    - name: conf fastEthernet1/1
+      ios_config:
+        parents: interface FastEthernet1/1
+        lines:
+          - ip address 10.10.20.254 255.255.255.0
+          - ip nat inside
+      notify: restart interface 1/1
+
+    - name: set route to admin
+      ios_config:
+        lines:
+          - ip route 10.10.10.0 255.255.255.0 10.10.30.210
+
+    - name: conf access list 1
+      ios_config:
+        lines:
+          - access-list 1 permit any
+          - ip nat inside source list 1 interface FastEthernet0/0 overload
+
+  handlers:
+    - import_tasks: ../handlers/router.yml

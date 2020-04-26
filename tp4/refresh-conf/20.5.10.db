@@ -1,0 +1,20 @@
+$TTL    604800
+@   IN  SOA     ns1.tp4.b2. root.tp4.b2. (
+                                                1001    ;Serial
+                                                3H      ;Refresh
+                                                15M     ;Retry
+                                                1W      ;Expire
+                                                1D      ;Minimum TTL
+                                                )
+
+;Name Server Information
+@ IN  NS      ns1.tp4.b2.
+
+
+11.30.5.10 IN PTR ns1.tp4.b2.
+
+;PTR Record IP address to HostName
+11      IN  PTR     guest1.tp4.b2.
+12      IN  PTR     guest2.tp4.b2.
+13      IN  PTR     guest3.tp4.b2.
+253      IN  PTR     dhcp.tp4.b2.

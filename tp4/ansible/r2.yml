@@ -1,0 +1,34 @@
+---
+- hosts: r2
+  gather_facts: no
+  connection: local
+
+  tasks:
+    - name: conf fastEthernet0/0
+      ios_config:
+        parents: interface FastEthernet0/0
+        lines:
+          - ip address 10.10.10.254 255.255.255.0
+          - ip nat inside
+      notify: restart interface 0/0
+
+    - name: conf fastEthernet1/0
+      ios_config:
+        parents: interface FastEthernet1/0
+        lines:
+          - ip address 10.10.30.210 255.255.255.0
+          - ip nat inside
+      notify: restart interface 1/0
+
+    - name: set default route via 10.10.30.220
+      ios_config:
+        lines:
+          - ip route 0.0.0.0 0.0.0.0 10.10.30.220
+
+    - name: set route to guests
+      ios_config:
+        lines:
+          - ip route 10.10.20.0 255.255.255.0 10.10.30.220
+
+  handlers:
+    - import_tasks: ../handlers/router.yml
